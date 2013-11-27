@@ -30,3 +30,8 @@ namespace :spec do
     t.pattern = "spec/**/*_{integration,spec}.rb"
   end
 end
+
+desc "pry console"
+task :console do
+  sh "pry -I lib -r ./lib/idev.rb"
+end
