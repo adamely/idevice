@@ -95,7 +95,7 @@ module Idev
     # * @sa #plist_type
     # */
     #PLIST_API plist_t plist_new_bool(uint8_t val);
-    attach_function :plist_new_bool, [:uint8], :plist_t
+    attach_function :plist_new_bool, [:bool], :plist_t
 
     #/**
     # * Create a new plist_t type #PLIST_UINT

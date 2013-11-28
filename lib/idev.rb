@@ -1,7 +1,9 @@
-require "idev/version"
-require "idev/c"
+require 'rubygems'
 
-require "idev/idevice"
+require 'idev/version'
+require 'idev/c'
+require 'idev/plist'
+require 'idev/idevice'
 
 module Idev
   def self.device_list
