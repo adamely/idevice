@@ -1,5 +1,6 @@
 require 'ffi'
-require "idev/c"
+require 'idev/c'
+require 'stringio'
 
 module Idev
   class IdeviceLibError < StandardError
@@ -72,6 +73,45 @@ module Idev
       _handle_idev_error{ C.idevice_disconnect(_idev_connection_ptr) }
     ensure
       @_idev_connection_ptr = nil
+    end
+
+    def send_data(data)
+      FFI::MemoryPointer.from_bytes(data) do |data_ptr|
+        FFI::MemoryPointer.new(:uint32) do |sent_bytes|
+          begin
+            _handle_idev_error { C.idevice_connection_send(_idev_connection_ptr, data_ptr, data_ptr.size, sent_bytes) }
+            sent = sent_bytes.read_uint32
+            break if sent == 0
+            data_ptr += sent
+          end while data_ptr.size > 0
+        end
+      end
+      return
+    end
+
+    def receive_data(maxlen=nil)
+      recvdata = StringIO.new
+
+      FFI::MemoryPointer.new(maxlen || 8192) do |data_ptr|
+        FFI::MemoryPointer.new(:uint32) do |recv_bytes|
+          if maxlen
+            # one-shot, read up to max-len and we're done
+            _handle_idev_error { C.idevice_connection_receive(_idev_connection_ptr, data_ptr, data_ptr.size, recv_bytes) }
+            recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
+          else
+            # if no maxlen specified, we read blocking until the connection closes
+            while (ierr=C.idevice_connection_receive(_idev_connection_ptr, data_ptr, data_ptr.size, recv_bytes)) == :SUCCESS
+              recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
+            end
+            if ierr == :UNKNOWN_ERROR # seems to indicate end of data/connection
+              self.disconnect
+            else
+              raise IdeviceLibError, "Library error: #{ierr}"
+            end
+          end
+        end
+      end
+      return recvdata.string
     end
 
     def disconnected?

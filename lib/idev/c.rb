@@ -4,6 +4,39 @@ require "ffi"
 
 require 'idev/libc'
 
+module FFI
+  class Pointer
+    def read_unbound_array_of_string
+      #Reads an array of strings terminated by an empty string (i.e.
+      #not length bound
+      ary = []
+      size = FFI.type_size(:string)
+      tmp = self
+      begin
+        s = tmp.read_pointer.read_string
+        ary << s
+        tmp += size
+      end while !tmp.read_pointer.null?
+      ary
+    end
+  end
+
+  class MemoryPointer < Pointer
+    def self.from_bytes(data)
+      if block_given?
+        new(data.size) do |p|
+          p.write_bytes(data)
+          yield(p)
+        end
+      else
+        p = new(data.size)
+        p.write_bytes(data)
+        p
+      end
+    end
+  end
+end
+
 module Idev
   module C
     extend FFI::Library
