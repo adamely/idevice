@@ -38,7 +38,7 @@ module Idev
         _handle_idev_error{ C.idevice_get_udid(_idev_ptr, udid_ptr) }
         unless udid_ptr.read_pointer.null?
           @udid = udid_ptr.read_pointer.read_string
-          LibC.free(udid_ptr.read_pointer)
+          C.free(udid_ptr.read_pointer)
         end
       end
       return @udid
