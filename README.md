@@ -1,6 +1,6 @@
 # Idev
 
-TODO: Write a gem description
+Ruby FFI bindings for libimobiledevice
 
 ## Installation
 
@@ -27,3 +27,12 @@ TODO: Write usage instructions here
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Author
+
+Eric Monti - esmonti(at)gmail(dot)com
+
+## License
+
+See LICENSE.txt
+
