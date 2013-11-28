@@ -22,7 +22,7 @@ describe Idev::Idevice do
 
     it "should have a udid" do
       @idevice.udid.should_not be_nil
-      @idevice.udid.should =~ /^[a-f0-9]{40}$/
+      @idevice.udid.should =~ /^[a-f0-9]{40}$/i
     end
 
     it "should have a handle" do
