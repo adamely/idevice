@@ -330,7 +330,6 @@ module Idev
         :NONE,      # No type 
     ), :plist_type
 
-
     #/**
     # * Get the #plist_type of a node.
     # *
@@ -425,14 +424,7 @@ module Idev
     #PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val);
     attach_function :plist_get_uid_val, [:plist_t, :pointer], :void
 
-
-    #/********************************************
-    # *                                          *
-    # *                Setters                   *
-    # *                                          *
-    # ********************************************/
-
-    #/**
+   #/**
     # * Forces type of node. Changing type of structured nodes is only allowed if node is empty.
     # * Reset value of node;
     # * @param node the node

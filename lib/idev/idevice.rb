@@ -55,7 +55,7 @@ module Idev
     end
 
     def connect port
-      return true if connected?
+      raise IdeviceLibError, "device is already connected" if connected?
 
       @_idev_connection_ptr = nil
       FFI::MemoryPointer.new(:pointer) do |tmpptr|
@@ -70,7 +70,7 @@ module Idev
     end
 
     def disconnect
-      _handle_idev_error{ C.idevice_disconnect(_idev_connection_ptr) }
+      _handle_idev_error{ C.idevice_disconnect(@_idev_connection_ptr) } if @_idev_connection_ptr
     ensure
       @_idev_connection_ptr = nil
     end
@@ -89,26 +89,41 @@ module Idev
       return
     end
 
-    def receive_data(maxlen=nil)
+    # blocking read - optionally takes a block with each chunk read
+    def receive_all(timeout=0)
+      recvdata = StringIO.new unless block_given?
+
+      FFI::MemoryPointer.new(8192) do |data_ptr|
+        FFI::MemoryPointer.new(:uint32) do |recv_bytes|
+          while (ierr=C.idevice_connection_receive_timeout(_idev_connection_ptr, data_ptr, data_ptr.size, recv_bytes, timeout)) == :SUCCESS
+            chunk = data_ptr.read_bytes(recv_bytes.read_uint32) 
+            if block_given?
+              yield chunk
+            else
+              recvdata << chunk
+            end
+
+          end
+          if ierr == :UNKNOWN_ERROR # seems to indicate end of data/connection
+            self.disconnect if timeout == 0
+          else
+            raise IdeviceLibError, "Library error: #{ierr}"
+          end
+        end
+      end
+
+      return recvdata.string unless block_given?
+    end
+
+    # read up to maxlen bytes
+    def receive_data(maxlen, timeout=0)
       recvdata = StringIO.new
 
-      FFI::MemoryPointer.new(maxlen || 8192) do |data_ptr|
+      FFI::MemoryPointer.new(maxlen) do |data_ptr|
         FFI::MemoryPointer.new(:uint32) do |recv_bytes|
-          if maxlen
-            # one-shot, read up to max-len and we're done
-            _handle_idev_error { C.idevice_connection_receive(_idev_connection_ptr, data_ptr, data_ptr.size, recv_bytes) }
-            recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
-          else
-            # if no maxlen specified, we read blocking until the connection closes
-            while (ierr=C.idevice_connection_receive(_idev_connection_ptr, data_ptr, data_ptr.size, recv_bytes)) == :SUCCESS
-              recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
-            end
-            if ierr == :UNKNOWN_ERROR # seems to indicate end of data/connection
-              self.disconnect
-            else
-              raise IdeviceLibError, "Library error: #{ierr}"
-            end
-          end
+          # one-shot, read up to max-len and we're done
+          _handle_idev_error { C.idevice_connection_receive_timeout(_idev_connection_ptr, data_ptr, data_ptr.size, recv_bytes, timeout) }
+          recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
         end
       end
       return recvdata.string
