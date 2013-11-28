@@ -54,19 +54,19 @@ describe Idev::Idevice do
       end
     end
 
-    it "should handshake with lockdownd" do
+    it "should query lockdownd" do
       begin
         @idevice.connect(62078).should be_true
         @idevice.should be_connected
         @idevice.should_not be_disconnected
 
-        @idevice.send_data("\000\000\001\032<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>Label</key>\n\t<string>afcclient</string>\n\t<key>Request</key>\n\t<string>QueryType</string>\n</dict>\n</plist>\n")
+        @idevice.send_data("\000\000\001\032<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>Label</key>\n\t<string>idevspecs</string>\n\t<key>Request</key>\n\t<string>QueryType</string>\n</dict>\n</plist>\n")
         blen = @idevice.receive_data(4)
         blen.size.should == 4
         len = blen.unpack("N").first
         dat = @idevice.receive_data(len)
         dat.size.should == len
-        dat.should =~ /^<\?xml/
+        dat.should =~ /^<\?xml /
 
       ensure
         @idevice.disconnect if @idevice.connected?
