@@ -59,260 +59,83 @@ module Idev
 
     typedef :pointer, :plist_t
 
-    #/**
-    # * Create a new root plist_t type #PLIST_DICT
-    # *
-    # * @return the created plist
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_dict(void);
     attach_function :plist_new_dict, [], :plist_t
 
-    #/**
-    # * Create a new root plist_t type #PLIST_ARRAY
-    # *
-    # * @return the created plist
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_array(void);
     attach_function :plist_new_array, [], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_STRING
-    # *
-    # * @param val the sting value, encoded in UTF8.
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_string(const char *val);
     attach_function :plist_new_string, [:string], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_BOOLEAN
-    # *
-    # * @param val the boolean value, 0 is false, other values are true.
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_bool(uint8_t val);
     attach_function :plist_new_bool, [:bool], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_UINT
-    # *
-    # * @param val the unsigned integer value
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_uint(uint64_t val);
     attach_function :plist_new_uint, [:uint64], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_REAL
-    # *
-    # * @param val the real value
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_real(double val);
     attach_function :plist_new_real, [:double], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_DATA
-    # *
-    # * @param val the binary buffer
-    # * @param length the length of the buffer
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_data(const char *val, uint64_t length);
     attach_function :plist_new_data, [:pointer, :uint64], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_DATE
-    # *
-    # * @param sec the number of seconds since 01/01/2001
-    # * @param usec the number of microseconds
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec);
     attach_function :plist_new_date, [:int32, :int32], :plist_t
 
-    #/**
-    # * Create a new plist_t type #PLIST_UID
-    # *
-    # * @param val the unsigned integer value
-    # * @return the created item
-    # * @sa #plist_type
-    # */
     #PLIST_API plist_t plist_new_uid(uint64_t val);
     attach_function :plist_new_uid, [:uint64], :plist_t
 
-    #/**
-    # * Return a copy of passed node and it's children
-    # *
-    # * @param node the plist to copy
-    # * @return copied plist
-    # */
     #PLIST_API plist_t plist_copy(plist_t node);
     attach_function :plist_copy, [:plist_t], :plist_t
 
-    #/**
-    # * Get size of a #PLIST_ARRAY node.
-    # *
-    # * @param node the node of type #PLIST_ARRAY
-    # * @return size of the #PLIST_ARRAY node
-    # */
     #PLIST_API uint32_t plist_array_get_size(plist_t node);
     attach_function :plist_array_get_size, [:plist_t], :uint32
 
-    #/**
-    # * Get the nth item in a #PLIST_ARRAY node.
-    # *
-    # * @param node the node of type #PLIST_ARRAY
-    # * @param n the index of the item to get. Range is [0, array_size[
-    # * @return the nth item or NULL if node is not of type #PLIST_ARRAY
-    # */
     #PLIST_API plist_t plist_array_get_item(plist_t node, uint32_t n);
     attach_function :plist_array_get_item, [:plist_t, :uint32], :plist_t
 
-    #/**
-    # * Get the index of an item. item must be a member of a #PLIST_ARRAY node.
-    # *
-    # * @param node the node
-    # * @return the node index
-    # */
     #PLIST_API uint32_t plist_array_get_item_index(plist_t node);
     attach_function :plist_array_get_item_index, [:plist_t], :uint32
 
-    #/**
-    # * Set the nth item in a #PLIST_ARRAY node.
-    # * The previous item at index n will be freed using #plist_free
-    # *
-    # * @param node the node of type #PLIST_ARRAY
-    # * @param item the new item at index n
-    # * @param n the index of the item to get. Range is [0, array_size[. Assert if n is not in range.
-    # */
     #PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n);
     attach_function :plist_array_set_item, [:plist_t, :plist_t, :uint32], :void
 
-    #/**
-    # * Append a new item at the end of a #PLIST_ARRAY node.
-    # *
-    # * @param node the node of type #PLIST_ARRAY
-    # * @param item the new item
-    # */
     #PLIST_API void plist_array_append_item(plist_t node, plist_t item);
     attach_function :plist_array_append_item, [:plist_t, :plist_t], :void
 
-    #/**
-    # * Insert a new item at position n in a #PLIST_ARRAY node.
-    # *
-    # * @param node the node of type #PLIST_ARRAY
-    # * @param item the new item to insert
-    # * @param n The position at which the node will be stored. Range is [0, array_size[. Assert if n is not in range.
-    # */
     #PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n);
     attach_function :plist_array_insert_item, [:plist_t, :plist_t, :uint32], :void
 
-    #/**
-    # * Remove an existing position in a #PLIST_ARRAY node.
-    # * Removed position will be freed using #plist_free
-    # *
-    # * @param node the node of type #PLIST_ARRAY
-    # * @param n The position to remove. Range is [0, array_size[. Assert if n is not in range.
-    # */
     #PLIST_API void plist_array_remove_item(plist_t node, uint32_t n);
     attach_function :plist_array_remove_item, [:plist_t, :uint32], :void
 
-    #/**
-    # * Get size of a #PLIST_DICT node.
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @return size of the #PLIST_DICT node
-    # */
     #PLIST_API uint32_t plist_dict_get_size(plist_t node);
     attach_function :plist_dict_get_size, [:plist_t], :uint32
 
     typedef :pointer, :plist_dict_iter
 
-    #/**
-    # * Create iterator of a #PLIST_DICT node.
-    # * The allocated iterator shoult be freed with tandard free function
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @param iter iterator of the #PLIST_DICT node
-    # */
     #PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter);
     attach_function :plist_dict_new_iter, [:plist_t, :plist_dict_iter], :void
 
-    #/**
-    # * Increment iterator of a #PLIST_DICT node.
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @param iter iterator of the dictionary
-    # * @param key a location to store the key, or NULL.
-    # * @param val a location to store the value, or NULL.
-    # */
     #PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
     attach_function :plist_dict_next_item, [:plist_t, :plist_dict_iter, :pointer, :pointer], :void
 
-    #/**
-    # * Get key associated to an item. Item must be member of a dictionary
-    # *
-    # * @param node the node
-    # * @param key a location to store the key.
-    # */
     #PLIST_API void plist_dict_get_item_key(plist_t node, char **key);
     attach_function :plist_dict_get_item_key, [:plist_t, :pointer], :void
 
-    #/**
-    # * Get the nth item in a #PLIST_DICT node.
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @param key the identifier of the item to get.
-    # * @return the item or NULL if node is not of type #PLIST_DICT
-    # */
     #PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key);
     attach_function :plist_dict_get_item, [:plist_t, :string], :plist_t
 
-    #/**
-    # * Set item identified by key in a #PLIST_DICT node.
-    # * The previous item at index n will be freed using #plist_free
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @param item the new item associated to key
-    # * @param key the identifier of the item to get. Assert if identifier is not present.
-    # */
     #PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item);
     attach_function :plist_dict_set_item, [:plist_t, :string, :plist_t], :void
 
-    #/**
-    # * Insert a new item at position n in a #PLIST_DICT node.
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @param item the new item to insert
-    # * @param key The identifier of the item to insert. Assert if identifier already present.
-    # */
     #PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
     attach_function :plist_dict_insert_item, [:plist_t, :string, :plist_t], :void
 
-    #/**
-    # * Remove an existing position in a #PLIST_DICT node.
-    # * Removed position will be freed using #plist_free
-    # *
-    # * @param node the node of type #PLIST_DICT
-    # * @param key The identifier of the item to remove. Assert if identifier is not present.
-    # */
     #PLIST_API void plist_dict_remove_item(plist_t node, const char* key);
     attach_function :plist_dict_remove_item, [:plist_t, :string], :void
 
-    #/**
-    # * Get the parent of a node
-    # *
-    # * @param node the parent (NULL if node is root)
-    # */
     #PLIST_API plist_t plist_get_parent(plist_t node);
     attach_function :plist_get_parent, [:plist_t], :plist_t
 
@@ -330,229 +153,69 @@ module Idev
         :NONE,      # No type 
     ), :plist_type
 
-    #/**
-    # * Get the #plist_type of a node.
-    # *
-    # * @param node the node
-    # * @return the type of the node
-    # */
     #PLIST_API plist_type plist_get_node_type(plist_t node);
     attach_function :plist_get_node_type, [:plist_t], :plist_type
 
-    #/**
-    # * Get the value of a #PLIST_KEY node.
-    # * This function does nothing if node is not of type #PLIST_KEY
-    # *
-    # * @param node the node
-    # * @param val a pointer to a C-string. This function allocates the memory,
-    # *            caller is responsible for freeing it.
-    # */
     #PLIST_API void plist_get_key_val(plist_t node, char **val);
     attach_function :plist_get_key_val, [:plist_t, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_STRING node.
-    # * This function does nothing if node is not of type #PLIST_STRING
-    # *
-    # * @param node the node
-    # * @param val a pointer to a C-string. This function allocates the memory,
-    # *            caller is responsible for freeing it. Data is UTF-8 encoded.
-    # */
     #PLIST_API void plist_get_string_val(plist_t node, char **val);
     attach_function :plist_get_string_val, [:plist_t, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_BOOLEAN node.
-    # * This function does nothing if node is not of type #PLIST_BOOLEAN
-    # *
-    # * @param node the node
-    # * @param val a pointer to a uint8_t variable.
-    # */
     #PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val);
     attach_function :plist_get_bool_val, [:plist_t, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_UINT node.
-    # * This function does nothing if node is not of type #PLIST_UINT
-    # *
-    # * @param node the node
-    # * @param val a pointer to a uint64_t variable.
-    # */
     #PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val);
     attach_function :plist_get_uint_val, [:plist_t, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_REAL node.
-    # * This function does nothing if node is not of type #PLIST_REAL
-    # *
-    # * @param node the node
-    # * @param val a pointer to a double variable.
-    # */
     #PLIST_API void plist_get_real_val(plist_t node, double *val);
     attach_function :plist_get_real_val, [:plist_t, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_DATA node.
-    # * This function does nothing if node is not of type #PLIST_DATA
-    # *
-    # * @param node the node
-    # * @param val a pointer to an unallocated char buffer. This function allocates the memory,
-    # *            caller is responsible for freeing it.
-    # * @param length the length of the buffer
-    # */
     #PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length);
     attach_function :plist_get_data_val, [:plist_t, :pointer, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_DATE node.
-    # * This function does nothing if node is not of type #PLIST_DATE
-    # *
-    # * @param node the node
-    # * @param sec a pointer to an int32_t variable. Represents the number of seconds since 01/01/2001.
-    # * @param usec a pointer to an int32_t variable. Represents the number of microseconds
-    # */
     #PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
     attach_function :plist_get_date_val, [:plist_t, :pointer, :pointer], :void
 
-    #/**
-    # * Get the value of a #PLIST_UID node.
-    # * This function does nothing if node is not of type #PLIST_UID
-    # *
-    # * @param node the node
-    # * @param val a pointer to a uint64_t variable.
-    # */
     #PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val);
     attach_function :plist_get_uid_val, [:plist_t, :pointer], :void
 
-   #/**
-    # * Forces type of node. Changing type of structured nodes is only allowed if node is empty.
-    # * Reset value of node;
-    # * @param node the node
-    # * @param type the key value
-    # */
     #PLIST_API void plist_set_type(plist_t node, plist_type type);
     attach_function :plist_set_type, [:plist_t, :plist_type], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_KEY
-    # *
-    # * @param node the node
-    # * @param val the key value
-    # */
     #PLIST_API void plist_set_key_val(plist_t node, const char *val);
     attach_function :plist_set_key_val, [:plist_t, :string], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_STRING
-    # *
-    # * @param node the node
-    # * @param val the string value
-    # */
     #PLIST_API void plist_set_string_val(plist_t node, const char *val);
     attach_function :plist_set_string_val, [:plist_t, :string], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_BOOLEAN
-    # *
-    # * @param node the node
-    # * @param val the boolean value
-    # */
     #PLIST_API void plist_set_bool_val(plist_t node, uint8_t val);
     attach_function :plist_set_bool_val, [:plist_t, :uint8], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_UINT
-    # *
-    # * @param node the node
-    # * @param val the unsigned integer value
-    # */
     #PLIST_API void plist_set_uint_val(plist_t node, uint64_t val);
     attach_function :plist_set_uint_val, [:plist_t, :uint64], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_REAL
-    # *
-    # * @param node the node
-    # * @param val the real value
-    # */
     #PLIST_API void plist_set_real_val(plist_t node, double val);
     attach_function :plist_set_real_val, [:plist_t, :double], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_DATA
-    # *
-    # * @param node the node
-    # * @param val the binary buffer
-    # * @param length the length of the buffer
-    # */
     #PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length);
     attach_function :plist_set_data_val, [:plist_t, :string, :uint64], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_DATE
-    # *
-    # * @param node the node
-    # * @param sec the number of seconds since 01/01/2001
-    # * @param usec the number of microseconds
-    # */
     #PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec);
     attach_function :plist_set_date_val, [:plist_t, :int32, :int32], :void
 
-    #/**
-    # * Set the value of a node.
-    # * Forces type of node to #PLIST_UID
-    # *
-    # * @param node the node
-    # * @param val the unsigned integer value
-    # */
     #PLIST_API void plist_set_uid_val(plist_t node, uint64_t val);
     attach_function :plist_set_uid_val, [:plist_t, :int32, :int32], :void
 
-    # * Import the #plist_t structure from binary format.
-    # *
-    # * @param plist_bin a pointer to the xml buffer.
-    # * @param length length of the buffer to read.
-    # * @param plist a pointer to the imported plist.
-    # */
     # void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
     attach_function :plist_from_bin, [:pointer, :uint32, :pointer], :void
 
-    #/**
-    # * Import the #plist_t structure from XML format.
-    # *
-    # * @param plist_xml a pointer to the xml buffer.
-    # * @param length length of the buffer to read.
-    # * @param plist a pointer to the imported plist.
-    # */
     # void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
     attach_function :plist_from_xml, [:pointer, :uint32, :pointer], :void
 
-    #/**
-    # * Export the #plist_t structure to binary format.
-    # *
-    # * @param plist the root node to export
-    # * @param plist_bin a pointer to a char* buffer. This function allocates the memory,
-    # *            caller is responsible for freeing it.
-    # * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
-    # */
     # void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
     attach_function :plist_to_bin, [:plist_t, :pointer, :pointer], :void
 
-    #/**
-    # * Export the #plist_t structure to XML format.
-    # *
-    # * @param plist the root node to export
-    # * @param plist_xml a pointer to a C-string. This function allocates the memory,
-    # *            caller is responsible for freeing it. Data is UTF-8 encoded.
-    # * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
-    # */
     # void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
     attach_function :plist_to_xml, [:plist_t, :pointer, :pointer], :void
 
@@ -562,10 +225,14 @@ module Idev
     #----------------------------------------------------------------------
     ffi_lib 'imobiledevice'
 
+    #
+    # libimobiledevice.h
+    #
+
     typedef :pointer, :idevice_t
     typedef :pointer, :idevice_connection_t
 
-    IdeviceError = enum(
+    typedef enum(
       :SUCCESS,               0,
       :INVALID_ARG,          -1,
       :UNKNOWN_ERROR,        -2,
@@ -573,9 +240,7 @@ module Idev
       :NOT_ENOUGH_DATA,      -4,
       :BAD_HEADER,           -5,
       :SSL_ERROR,            -6,
-    )
-
-    typedef IdeviceError, :idevice_error_t
+    ), :idevice_error_t
 
     # discovery (synchronous)
     attach_function :idevice_set_debug_level, [:int], :void
@@ -598,6 +263,248 @@ module Idev
     # misc
     attach_function :idevice_get_handle, [:idevice_t, :pointer], :idevice_error_t
     attach_function :idevice_get_udid, [:idevice_t, :pointer], :idevice_error_t
+
+    #
+    # lockdownd.h
+    #
+
+    typedef enum(
+      :SUCCESS                  ,  0,
+      :INVALID_ARG              , -1,
+      :INVALID_CONF             , -2,
+      :PLIST_ERROR              , -3,
+      :PAIRING_FAILED           , -4,
+      :SSL_ERROR                , -5,
+      :DICT_ERROR               , -6,
+      :START_SERVICE_FAILED     , -7,
+      :NOT_ENOUGH_DATA          , -8,
+      :SET_VALUE_PROHIBITED     , -9,
+      :GET_VALUE_PROHIBITED     ,-10,
+      :REMOVE_VALUE_PROHIBITED  ,-11,
+      :MUX_ERROR                ,-12,
+      :ACTIVATION_FAILED        ,-13,
+      :PASSWORD_PROTECTED       ,-14,
+      :NO_RUNNING_SESSION       ,-15,
+      :INVALID_HOST_ID          ,-16,
+      :INVALID_SERVICE          ,-17,
+      :INVALID_ACTIVATION_RECORD,-18,
+      :UNKNOWN_ERROR            ,-256,
+    ), :lockdownd_error_t
+
+    typedef :pointer, :lockdownd_client_t
+
+    class LockdowndPairRecord < FFI::Struct
+      layout( :device_certificate,    :string,
+              :host_certificate,      :string,
+              :host_id,               :string,
+              :root_certificate,      :string )
+    end
+
+    class LockdowndServiceDescriptor < FFI::ManagedStruct
+      layout( :port,        :uint16,
+              :ssl_enabled, :uint8 )
+
+      def self.release(ptr)
+        ::Idev::C.lockdownd_service_descriptor_free(ptr)
+      end
+    end
+
+
+    #lockdownd_error_t lockdownd_client_new(idevice_t device, lockdownd_client_t *client, const char *label);
+    attach_function :lockdownd_client_new, [:idevice_t, :pointer, :string], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_client_new_with_handshake(idevice_t device, lockdownd_client_t *client, const char *label);
+    attach_function :lockdownd_client_new_with_handshake, [:idevice_t, :pointer, :string], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_client_free(lockdownd_client_t client);
+    attach_function :lockdownd_client_free, [:lockdownd_client_t], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_query_type(lockdownd_client_t client, char **type);
+    attach_function :lockdownd_query_type, [:lockdownd_client_t, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_get_value(lockdownd_client_t client, const char *domain, const char *key, plist_t *value);
+    attach_function :lockdownd_get_value, [:lockdownd_client_t, :string, :string, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_set_value(lockdownd_client_t client, const char *domain, const char *key, plist_t value);
+    attach_function :lockdownd_set_value, [:lockdownd_client_t, :string, :string, :plist_t], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_remove_value(lockdownd_client_t client, const char *domain, const char *key);
+    attach_function :lockdownd_remove_value, [:lockdownd_client_t, :string, :string], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_start_service(lockdownd_client_t client, const char *identifier, lockdownd_service_descriptor_t *service);
+    attach_function :lockdownd_start_service, [:lockdownd_client_t, :string, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_start_session(lockdownd_client_t client, const char *host_id, char **session_id, int *ssl_enabled);
+    attach_function :lockdownd_start_session, [:lockdownd_client_t, :string, :pointer, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_stop_session(lockdownd_client_t client, const char *session_id);
+    attach_function :lockdownd_stop_session, [:lockdownd_client_t, :string], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_send(lockdownd_client_t client, plist_t plist);
+    attach_function :lockdownd_send, [:lockdownd_client_t, :plist_t], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_receive(lockdownd_client_t client, plist_t *plist);
+    attach_function :lockdownd_receive, [:lockdownd_client_t, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_pair(lockdownd_client_t client, lockdownd_pair_record_t pair_record);
+    attach_function :lockdownd_pair, [:lockdownd_client_t, LockdowndPairRecord], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_validate_pair(lockdownd_client_t client, lockdownd_pair_record_t pair_record);
+    attach_function :lockdownd_validate_pair, [:lockdownd_client_t, LockdowndPairRecord], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_unpair(lockdownd_client_t client, lockdownd_pair_record_t pair_record);
+    attach_function :lockdownd_unpair, [:lockdownd_client_t, LockdowndPairRecord], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_activate(lockdownd_client_t client, plist_t activation_record);
+    attach_function :lockdownd_activate, [:lockdownd_client_t, :plist_t], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_deactivate(lockdownd_client_t client);
+    attach_function :lockdownd_deactivate, [:lockdownd_client_t], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_enter_recovery(lockdownd_client_t client);
+    attach_function :lockdownd_enter_recovery, [:lockdownd_client_t], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_goodbye(lockdownd_client_t client);
+    attach_function :lockdownd_goodbye, [:lockdownd_client_t], :lockdownd_error_t
+
+    #void lockdownd_client_set_label(lockdownd_client_t client, const char *label);
+    attach_function :lockdownd_client_set_label, [:lockdownd_client_t, :string], :void
+
+    #lockdownd_error_t lockdownd_get_device_udid(lockdownd_client_t control, char **udid);
+    attach_function :lockdownd_get_device_udid, [:lockdownd_client_t, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_get_device_name(lockdownd_client_t client, char **device_name);
+    attach_function :lockdownd_get_device_name, [:lockdownd_client_t, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_get_sync_data_classes(lockdownd_client_t client, char ***classes, int *count);
+    attach_function :lockdownd_get_sync_data_classes, [:lockdownd_client_t, :pointer, :pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_data_classes_free(char **classes);
+    attach_function :lockdownd_data_classes_free, [:pointer], :lockdownd_error_t
+
+    #lockdownd_error_t lockdownd_service_descriptor_free(lockdownd_service_descriptor_t service);
+    attach_function :lockdownd_service_descriptor_free, [LockdowndServiceDescriptor], :lockdownd_error_t
+
+
+    #
+    # afc.h
+    #
+
+    typedef enum(
+      :SUCCESS              ,   0,
+      :UNKNOWN_ERROR        ,   1,
+      :OP_HEADER_INVALID    ,   2,
+      :NO_RESOURCES         ,   3,
+      :READ_ERROR           ,   4,
+      :WRITE_ERROR          ,   5,
+      :UNKNOWN_PACKET_TYPE  ,   6,
+      :INVALID_ARG          ,   7,
+      :OBJECT_NOT_FOUND     ,   8,
+      :OBJECT_IS_DIR        ,   9,
+      :PERM_DENIED          ,  10,
+      :SERVICE_NOT_CONNECTED,  11,
+      :OP_TIMEOUT           ,  12,
+      :TOO_MUCH_DATA        ,  13,
+      :END_OF_DATA          ,  14,
+      :OP_NOT_SUPPORTED     ,  15,
+      :OBJECT_EXISTS        ,  16,
+      :OBJECT_BUSY          ,  17,
+      :NO_SPACE_LEFT        ,  18,
+      :OP_WOULD_BLOCK       ,  19,
+      :IO_ERROR             ,  20,
+      :OP_INTERRUPTED       ,  21,
+      :OP_IN_PROGRESS       ,  22,
+      :INTERNAL_ERROR       ,  23,
+
+      :MUX_ERROR            ,  30,
+      :NO_MEM               ,  31,
+      :NOT_ENOUGH_DATA      ,  32,
+      :DIR_NOT_EMPTY        ,  33,
+    ), :afc_error_t
+
+    typedef enum(
+      :RDONLY   , 0x00000001, # r   O_RDONLY
+      :RW       , 0x00000002, # r+  O_RDWR   | O_CREAT
+      :WRONLY   , 0x00000003, # w   O_WRONLY | O_CREAT  | O_TRUNC
+      :WR       , 0x00000004, # w+  O_RDWR   | O_CREAT  | O_TRUNC
+      :APPEND   , 0x00000005, # a   O_WRONLY | O_APPEND | O_CREAT
+      :RDAPPEND , 0x00000006,  # a+  O_RDWR   | O_APPEND | O_CREAT
+    ), :afc_file_mode_t
+
+    typedef enum(
+      :HARDLINK , 1,
+      :SYMLINK , 2,
+    ), :afc_link_type_t
+
+    typedef enum(
+      :SHARED,      (1 | 4),
+      :EXCLUSIVE,   (2 | 4),
+      :UNLOCK,      (8 | 4),
+    ), :afc_lock_op_t;
+
+    typedef enum( :SEEK_SET, :SEEK_CUR, :SEEK_END ), :whence_t
+
+    typedef :pointer, :afc_client_t
+
+    # afc_error_t afc_client_new(idevice_t device, lockdownd_service_descriptor_t service, afc_client_t *client);
+    attach_function :afc_client_new, [:idevice_t, LockdowndServiceDescriptor, :pointer], :afc_error_t
+
+    # afc_error_t afc_client_free(afc_client_t client);
+    attach_function :afc_client_free, [:afc_client_t], :afc_error_t
+
+    # afc_error_t afc_get_device_info(afc_client_t client, char ***infos);
+    attach_function :afc_get_device_info, [:afc_client_t, :pointer], :afc_error_t
+
+    # afc_error_t afc_read_directory(afc_client_t client, const char *dir, char ***list);
+    attach_function :afc_read_directory, [:afc_client_t, :string, :pointer], :afc_error_t
+
+    # afc_error_t afc_get_file_info(afc_client_t client, const char *filename, char ***infolist);
+    attach_function :afc_get_file_info, [:afc_client_t, :string, :pointer], :afc_error_t
+
+    # afc_error_t afc_file_open(afc_client_t client, const char *filename, afc_file_mode_t file_mode, uint64_t *handle);
+    attach_function :afc_file_open, [:afc_client_t, :string, :afc_file_mode_t, :pointer], :afc_error_t
+
+    # afc_error_t afc_file_close(afc_client_t client, uint64_t handle);
+    attach_function :afc_file_close, [:afc_client_t, :uint64], :afc_error_t
+
+    # afc_error_t afc_file_lock(afc_client_t client, uint64_t handle, afc_lock_op_t operation);
+    attach_function :afc_file_lock, [:afc_client_t, :uint64, :afc_lock_op_t], :afc_error_t
+
+    # afc_error_t afc_file_read(afc_client_t client, uint64_t handle, char *data, uint32_t length, uint32_t *bytes_read);
+    attach_function :afc_file_read, [:afc_client_t, :uint64, :pointer, :uint32, :pointer], :afc_error_t
+
+    # afc_error_t afc_file_write(afc_client_t client, uint64_t handle, const char *data, uint32_t length, uint32_t *bytes_written);
+    attach_function :afc_file_write, [:afc_client_t, :uint64, :string, :uint32, :pointer], :afc_error_t
+
+    # afc_error_t afc_file_seek(afc_client_t client, uint64_t handle, int64_t offset, int whence);
+    attach_function :afc_file_seek, [:afc_client_t, :uint64, :int64, :whence_t], :afc_error_t
+
+    # afc_error_t afc_file_tell(afc_client_t client, uint64_t handle, uint64_t *position);
+    attach_function :afc_file_tell, [:afc_client_t, :uint64, :pointer], :afc_error_t
+
+    # afc_error_t afc_file_truncate(afc_client_t client, uint64_t handle, uint64_t newsize);
+    attach_function :afc_file_truncate, [:afc_client_t, :uint64, :uint64], :afc_error_t
+
+    # afc_error_t afc_remove_path(afc_client_t client, const char *path);
+    attach_function :afc_remove_path, [:afc_client_t, :string], :afc_error_t
+
+    # afc_error_t afc_rename_path(afc_client_t client, const char *from, const char *to);
+    attach_function :afc_rename_path, [:afc_client_t, :string, :string], :afc_error_t
+
+    # afc_error_t afc_make_directory(afc_client_t client, const char *dir);
+    attach_function :afc_make_directory, [:afc_client_t, :string], :afc_error_t
+
+    # afc_error_t afc_truncate(afc_client_t client, const char *path, uint64_t newsize);
+    attach_function :afc_truncate, [:afc_client_t, :string, :uint64], :afc_error_t
+
+    # afc_error_t afc_make_link(afc_client_t client, afc_link_type_t linktype, const char *target, const char *linkname);
+    attach_function :afc_make_link, [:afc_client_t, :afc_link_type_t, :string, :string], :afc_error_t
+
+    # afc_error_t afc_set_file_time(afc_client_t client, const char *path, uint64_t mtime);
+    attach_function :afc_set_file_time, [:afc_client_t, :string, :uint64], :afc_error_t
+
+    # afc_error_t afc_get_device_info_key(afc_client_t client, const char *key, char **value);
+    attach_function :afc_get_device_info_key, [:afc_client_t, :string, :pointer], :afc_error_t
 
   end
 end

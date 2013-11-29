@@ -27,3 +27,6 @@ RSpec.configure do |config|
   end
 end
 
+if ENV["DEBUG"]
+  Idev.debug_level=9
+end

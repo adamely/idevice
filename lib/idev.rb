@@ -6,6 +6,10 @@ require 'idev/plist'
 require 'idev/idevice'
 
 module Idev
+  def self.debug_level= num
+    C.idevice_set_debug_level(num)
+  end
+
   def self.device_list
     FFI::MemoryPointer.new(:int) do |countp|
       FFI::MemoryPointer.new(:pointer) do |devices|
