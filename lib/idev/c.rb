@@ -24,10 +24,11 @@ module Idev
   module C
     extend FFI::Library
 
-    class ManagedPointer < FFI::AutoPointer
-      def initialize(ptr)
+    class ManagedOpaquePointer < FFI::AutoPointer
+      def initialize(pointer)
         raise NoMethodError, "release() not implemented for class #{self}" unless self.class.respond_to? :release
-        super(ptr, self.class.method(:release))
+        raise ArgumentError, "Must supply a pointer to memory" unless pointer
+        super(pointer, self.class.method(:release))
       end
     end
 
@@ -49,9 +50,9 @@ module Idev
     #----------------------------------------------------------------------
     ffi_lib 'plist'
 
-    class Plist_t < ManagedPointer
+    class Plist_t < ManagedOpaquePointer
       def self.release(ptr)
-        ::Idev::C.plist_free(ptr) unless ptr.null?
+        C::plist_free(ptr) unless ptr.null?
       end
 
       def self.new_array
@@ -407,7 +408,7 @@ module Idev
               :ssl_enabled, :uint8 )
 
       def self.release(ptr)
-        ::Idev::C.lockdownd_service_descriptor_free(ptr)
+        C::lockdownd_service_descriptor_free(ptr)
       end
     end
 
