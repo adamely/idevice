@@ -6,6 +6,8 @@ module Idev
   class AFCError < IdeviceLibError
   end
 
+  AFC_DEFAULT_CHUNKSIZE = 8192
+
   def self._handle_afc_error(&block)
     ret = block.call()
     if ret != :SUCCESS
@@ -127,8 +129,8 @@ module Idev
       return res["st_size"].to_i
     end
 
-    def putpath(frompath, topath, chunksize=nil)
-      chunksize ||= 8192
+    def put_path(frompath, topath, chunksize=nil)
+      chunksize ||= AFC_DEFAULT_CHUNKSIZE
       wlen = 0
 
       File.open(frompath, 'r') do |from|
@@ -264,7 +266,7 @@ module Idev
     end
 
     def read_all(chunksz=nil)
-      chunksz ||= 8192
+      chunksz ||= AFC_DEFAULT_CHUNKSIZE
       ret = nil
       FFI::MemoryPointer.new(chunksz) do |buf|
         FFI::MemoryPointer.new(:uint32) do |p_rlen|

@@ -3,6 +3,7 @@ require_relative 'spec_helper'
 describe Idev::AFC do
   before :all do
     @idevice = Idev::Idevice.attach
+    @fromfile = sample_file("plist.bin")
   end
 
   before :each do
@@ -52,30 +53,61 @@ describe Idev::AFC do
     lambda{ @afc.file_info('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
   end
 
-  it "should remove a path" do
-    @afc.make_directory('TOTALLYATESTDIRCREATEDTEST').should be_true
-    @afc.remove_path('TOTALLYATESTDIRCREATEDTEST').should be_true
+  it "should remove a file path" do
+    remotepath='TOTALLYATESTFILECREATEDTEST'
+
+    @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+    @afc.remove_path(remotepath).should be_true
   end
 
-  it "should rename a path" do
+  it "should remove an (empty) directory path" do
+    remotepath='TOTALLYATESTDIRCREATEDTEST'
+    @afc.make_directory(remotepath).should be_true
+    @afc.remove_path(remotepath).should be_true
+  end
+
+  it "should rename a file path" do
+    remotepath='TOTALLYATESTFILECREATEDTEST'
+    renamepath = remotepath+'2'
+
     begin
-      @afc.make_directory('TOTALLYATESTDIRCREATEDTEST').should be_true
-      @afc.rename_path('TOTALLYATESTDIRCREATEDTEST', 'TOTALLYATESTDIRCREATEDTEST2').should be_true
-      result = @afc.file_info('TOTALLYATESTDIRCREATEDTEST2')
-      result["st_ifmt"].should == "S_IFDIR"
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      originfo = @afc.file_info(remotepath)
+      @afc.rename_path(remotepath, renamepath).should be_true
+      lambda{ @afc.file_info(remotepath) }.should raise_error Idev::AFCError
+      info = @afc.file_info(renamepath)
+      info.should == originfo
     ensure
-      @afc.remove_path('TOTALLYATESTDIRCREATEDTEST') rescue nil
-      @afc.remove_path('TOTALLYATESTDIRCREATEDTEST2').should be_true
+      @afc.remove_path(remotepath) rescue nil
+      @afc.remove_path(renamepath).should be_true
+    end
+
+  end
+
+  it "should rename a directory path" do
+    remotepath = 'TOTALLYATESTDIRCREATEDTEST'
+    renamepath = remotepath+'2'
+    begin
+      @afc.make_directory(remotepath).should be_true
+      originfo = @afc.file_info(remotepath)
+      @afc.rename_path(remotepath, renamepath).should be_true
+      lambda{ @afc.file_info(remotepath) }.should raise_error Idev::AFCError
+      info = @afc.file_info(renamepath)
+      info.should == originfo
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+      @afc.remove_path(renamepath).should be_true
     end
   end
 
   it "should make a directory" do
+    remotepath = 'TOTALLYATESTDIR'
     begin
-      @afc.make_directory('TOTALLYATESTDIR').should be_true
-      result = @afc.file_info('TOTALLYATESTDIR')
+      @afc.make_directory(remotepath).should be_true
+      result = @afc.file_info(remotepath)
       result["st_ifmt"].should == "S_IFDIR"
     ensure
-      @afc.remove_path('TOTALLYATESTDIR') rescue nil
+      @afc.remove_path(remotepath) rescue nil
     end
   end
 
@@ -107,27 +139,25 @@ describe Idev::AFC do
   end
 
   it "should put a file and cat it" do
-    frompath = sample_file("plist.bin")
     remotepath = 'TESTFILEUPLOAD'
 
     begin
-      @afc.putpath(frompath.to_s, remotepath).should == frompath.size
-      @afc.cat(remotepath).should == frompath.read()
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      @afc.cat(remotepath).should == @fromfile.read()
     ensure
       @afc.remove_path(remotepath) rescue nil
     end
   end
 
   it "should put a file and cat it with a small chunk size" do
-    frompath = sample_file("plist.bin")
     remotepath = 'TESTFILEUPLOAD'
 
     begin
       gotblock=false
-      @afc.putpath(frompath.to_s, remotepath, 2) do |chunksz|
+      @afc.put_path(@fromfile.to_s, remotepath, 2) do |chunksz|
         gotblock=true
         (0..2).should include(chunksz)
-      end.should == frompath.size
+      end.should == @fromfile.size
       gotblock.should be_true
 
       catsize = 0
@@ -141,8 +171,8 @@ describe Idev::AFC do
         (0..2).should include(chunk.size)
       end
 
-      catsize.should == frompath.size
-      catbuf.string.should == frompath.read()
+      catsize.should == @fromfile.size
+      catbuf.string.should == @fromfile.read()
       gotblock.should be_true
     ensure
       @afc.remove_path(remotepath) rescue nil
@@ -150,15 +180,14 @@ describe Idev::AFC do
   end
 
   it "should get a file" do
-    frompath = sample_file("plist.bin")
     tmpfile = Tempfile.new('TESTFILEUPLOADFORGETlocal')
     tmppath = tmpfile.path
     tmpfile.close
     remotepath = 'TESTFILEUPLOADFORGET'
     begin
-      @afc.putpath(frompath.to_s, remotepath).should == frompath.size
-      @afc.getpath(remotepath, tmppath).should == frompath.size
-      File.read(tmppath).should == frompath.read()
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      @afc.getpath(remotepath, tmppath).should == @fromfile.size
+      File.read(tmppath).should == @fromfile.read()
     ensure
       @afc.remove_path(remotepath) rescue nil
       File.unlink(tmppath)
@@ -166,13 +195,12 @@ describe Idev::AFC do
   end
 
   it "should truncate a file path" do
-    frompath = sample_file("plist.bin")
     remotepath = 'TESTFILEUPLOADFORTRUNCATE'
 
     begin
-      frompath.size.should > 10
-      @afc.putpath(frompath.to_s, remotepath).should == frompath.size
-      @afc.size(remotepath).should == frompath.size
+      (@fromfile.size > 10).should be_true
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      @afc.size(remotepath).should == @fromfile.size
       @afc.truncate(remotepath, 10).should be_true
       @afc.size(remotepath).should == 10
     ensure
