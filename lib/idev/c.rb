@@ -1,14 +1,9 @@
 
 require "rubygems"
+require 'plist'
 require "ffi"
 
 module FFI
-  class ManagedPointer < AutoPointer
-    def initialize(ptr)
-      super(ptr, self.class.method(:release))
-    end
-  end
-
   class MemoryPointer < Pointer
     def self.from_bytes(data)
       if block_given?
@@ -29,6 +24,13 @@ module Idev
   module C
     extend FFI::Library
 
+    class ManagedPointer < FFI::AutoPointer
+      def initialize(ptr)
+        raise NoMethodError, "release() not implemented for class #{self}" unless self.class.respond_to? :release
+        super(ptr, self.class.method(:release))
+      end
+    end
+
     #----------------------------------------------------------------------
     ffi_lib FFI::Library::LIBC
 
@@ -47,10 +49,60 @@ module Idev
     #----------------------------------------------------------------------
     ffi_lib 'plist'
 
-    class Plist_t < FFI::ManagedPointer
+    class Plist_t < ManagedPointer
       def self.release(ptr)
         ::Idev::C.plist_free(ptr)
       end
+
+      def self.from_xml(xml)
+        FFI::MemoryPointer.from_bytes(xml) do |plist_xml|
+          FFI::MemoryPointer.new(:pointer) do |out|
+            C.plist_from_xml(plist_xml, plist_xml.size, out)
+            if (out.null?)
+              return nil
+            else
+              return new(out.read_pointer)
+            end
+          end
+        end
+      end
+
+      def self.from_binary(data)
+        FFI::MemoryPointer.from_bytes(data) do |plist_bin|
+          FFI::MemoryPointer.new(:pointer) do |out|
+            C.plist_from_bin(plist_bin, plist_bin.size, out)
+            if (out.null?)
+              return nil
+            else
+              return new(out.read_pointer)
+            end
+          end
+        end
+      end
+
+      def self.from_ruby(obj)
+      end
+
+      def to_ruby
+        FFI::MemoryPointer.new(:pointer) do |plist_xml_p|
+          FFI::MemoryPointer.new(:pointer) do |length_p|
+            C.plist_to_xml(self, plist_xml_p, length_p)
+            length = length_p.read_uint32
+            if plist_xml_p.null?
+              return nil
+            else
+              ptr = plist_xml_p.read_pointer
+              begin
+                res = ::Plist.parse_xml(ptr.read_bytes(length))
+              ensure
+                C.free(ptr)
+              end
+              return res
+            end
+          end
+        end
+      end
+
     end
 
     #PLIST_API plist_t plist_new_dict(void);
