@@ -160,12 +160,25 @@ describe Idev::AFC do
       @afc.getpath(remotepath, tmppath).should == frompath.size
       File.read(tmppath).should == frompath.read()
     ensure
-      @afc.remove_path('TESTFILEUPLOADFORGET') rescue nil
+      @afc.remove_path(remotepath) rescue nil
       File.unlink(tmppath)
     end
   end
 
-  it "should truncate a file path"
+  it "should truncate a file path" do
+    frompath = sample_file("plist.bin")
+    remotepath = 'TESTFILEUPLOADFORTRUNCATE'
+
+    begin
+      frompath.size.should > 10
+      @afc.putpath(frompath.to_s, remotepath).should == frompath.size
+      @afc.size(remotepath).should == frompath.size
+      @afc.truncate(remotepath, 10).should be_true
+      @afc.size(remotepath).should == 10
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
 
   it "should set file time"
 end

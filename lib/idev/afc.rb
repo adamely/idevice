@@ -122,6 +122,11 @@ module Idev
       AFCFile.open(self, path, 'r') { |f| return f.read_all(chunksize, &block) }
     end
 
+    def size(path)
+      res = file_info(path)
+      return res["st_size"].to_i
+    end
+
     def putpath(frompath, topath, chunksize=nil)
       chunksize ||= 8192
       wlen = 0
