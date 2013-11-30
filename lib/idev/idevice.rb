@@ -20,11 +20,11 @@ module Idev
 
     # Use this instead of 'new' to attach to an idevice using libimobiledevice
     # and instantiate a new idevice_t handle
-    def self.attach(udid=nil)
-      @udid = udid
+    def self.attach(opts={})
+      @udid = opts[:udid]
 
       FFI::MemoryPointer.new(:pointer) do |tmpptr|
-        ::Idev._handle_idev_error { C.idevice_new(tmpptr, udid) }
+        ::Idev._handle_idev_error { C.idevice_new(tmpptr, @udid) }
         idevice_t = tmpptr.read_pointer
         if idevice_t.null?
           raise IdeviceLibError, "idevice_new created a null pointer"
@@ -148,9 +148,6 @@ module Idev
   module C
     ffi_lib 'imobiledevice'
 
-    typedef :pointer, :idevice_t
-    typedef :pointer, :idevice_connection_t
-
     typedef enum(
       :SUCCESS,               0,
       :INVALID_ARG,          -1,
@@ -172,12 +169,12 @@ module Idev
 
     # connection/disconnection
     attach_function :idevice_connect, [Idevice, :uint16, :pointer], :idevice_error_t
-    attach_function :idevice_disconnect, [:idevice_connection_t], :idevice_error_t
+    attach_function :idevice_disconnect, [IdeviceConnection], :idevice_error_t
 
     # communication
-    attach_function :idevice_connection_send, [:idevice_connection_t, :pointer, :uint32, :pointer], :idevice_error_t
-    attach_function :idevice_connection_receive_timeout, [:idevice_connection_t, :pointer, :uint32, :pointer, :uint], :idevice_error_t
-    attach_function :idevice_connection_receive, [:idevice_connection_t, :pointer, :uint32, :pointer], :idevice_error_t
+    attach_function :idevice_connection_send, [IdeviceConnection, :pointer, :uint32, :pointer], :idevice_error_t
+    attach_function :idevice_connection_receive_timeout, [IdeviceConnection, :pointer, :uint32, :pointer, :uint], :idevice_error_t
+    attach_function :idevice_connection_receive, [IdeviceConnection, :pointer, :uint32, :pointer], :idevice_error_t
 
     # misc
     attach_function :idevice_get_handle, [Idevice, :pointer], :idevice_error_t
