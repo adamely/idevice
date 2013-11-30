@@ -1,7 +1,17 @@
 require 'idev/c'
+require 'idev/idevice'
 require 'idev/lockdown'
 
 module Idev
+  class Idev::AFC < C::ManagedOpaquePointer
+    def self.release(ptr)
+      C.afc_client_free(ptr) unless ptr.null?
+    end
+
+    def self.attach(opts={})
+    end
+  end
+
   module C
     ffi_lib 'imobiledevice'
 
@@ -62,7 +72,7 @@ module Idev
     typedef :pointer, :afc_client_t
 
     # afc_error_t afc_client_new(idevice_t device, lockdownd_service_descriptor_t service, afc_client_t *client);
-    attach_function :afc_client_new, [:idevice_t, LockdowndServiceDescriptor, :pointer], :afc_error_t
+    attach_function :afc_client_new, [Idevice, LockdowndServiceDescriptor, :pointer], :afc_error_t
 
     # afc_error_t afc_client_free(afc_client_t client);
     attach_function :afc_client_free, [:afc_client_t], :afc_error_t
