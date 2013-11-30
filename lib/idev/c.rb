@@ -51,17 +51,26 @@ module Idev
 
     class Plist_t < ManagedPointer
       def self.release(ptr)
-        ::Idev::C.plist_free(ptr)
+        ::Idev::C.plist_free(ptr) unless ptr.null?
+      end
+
+      def self.new_array
+        C.plist_new_array()
+      end
+
+      def self.new_dict
+        C.plist_new_dict()
       end
 
       def self.from_xml(xml)
         FFI::MemoryPointer.from_bytes(xml) do |plist_xml|
-          FFI::MemoryPointer.new(:pointer) do |out|
-            C.plist_from_xml(plist_xml, plist_xml.size, out)
-            if (out.null?)
+          FFI::MemoryPointer.new(:pointer) do |p_out|
+            C.plist_from_xml(plist_xml, plist_xml.size, p_out)
+            out = p_out.read_pointer
+            if out.null?
               return nil
             else
-              return new(out.read_pointer)
+              return new(out)
             end
           end
         end
@@ -69,18 +78,65 @@ module Idev
 
       def self.from_binary(data)
         FFI::MemoryPointer.from_bytes(data) do |plist_bin|
-          FFI::MemoryPointer.new(:pointer) do |out|
-            C.plist_from_bin(plist_bin, plist_bin.size, out)
-            if (out.null?)
+          FFI::MemoryPointer.new(:pointer) do |p_out|
+            C.plist_from_bin(plist_bin, plist_bin.size, p_out)
+            out = p_out.read_pointer
+            if out.null?
               return nil
             else
-              return new(out.read_pointer)
+              return new(out)
             end
           end
         end
       end
 
+      def self.new_bool(val)
+        C.plist_new_bool(val)
+      end
+
+      def self.new_string(str)
+        C.plist_new_string(str)
+      end
+
+      def self.new_real(val)
+        C.plist_new_real(val)
+      end
+
+      def self.new_uint(val)
+        C.plist_new_uint(val)
+      end
+
+      def self.new_uid(val)
+        C.plist_new_uint(val)
+      end
+
+      def self.new_data(data)
+        FFI::MemoryPointer.from_bytes(data) do |p_data|
+          FFI::MemoryPointer.new(:pointer) do |p_out|
+            return C.plist_new_data(p_data, p_data.size)
+          end
+        end
+      end
+
       def self.from_ruby(obj)
+        case obj
+          when TrueClass,FalseClass
+            new_bool(obj)
+          when Hash, Array
+            from_xml(obj.to_plist)
+          when String
+            new_string(obj)
+          when StringIO
+            new_data(obj.string)
+          when Float
+            new_real(obj)
+          when Integer
+            new_uint(obj)
+          when Time,DateTime
+            raise NotImplementedError # XXX TODO
+          else
+            raise TypeError, "Unable to convert #{obj.class} to a plist"
+        end
       end
 
       def to_ruby

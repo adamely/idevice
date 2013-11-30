@@ -24,57 +24,73 @@ describe Plist do
   end
 
   it "should convert a plist pointer from and to a hash" do
-    ptr = Idev::C.plist_new_dict
+    ptr = Idev::C::Plist_t.new_dict
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    hash = Plist.pointer_to_ruby(ptr)
+    hash = ptr.to_ruby
     hash.should == {}
   end
 
   it "should create a plist pointer from and to an array" do
-    ptr = Idev::C.plist_new_array
+    ptr = Idev::C::Plist_t.new_array
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    ary = Plist.pointer_to_ruby(ptr)
+    ary = ptr.to_ruby
     ary.should == []
   end
 
   it "should convert a plist pointer from and to a string" do
-    ptr = Idev::C.plist_new_string("foobadoo")
+    ptr = Idev::C::Plist_t.from_ruby("foobadoo")
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    str = Plist.pointer_to_ruby(ptr)
+    str = ptr.to_ruby
     str.should == "foobadoo"
   end
 
   it "should convert a plist pointer from and to bool" do
-    ptr = Idev::C.plist_new_bool(false)
+    ptr = Idev::C::Plist_t.from_ruby(false)
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    bool = Plist.pointer_to_ruby(ptr)
+    bool = ptr.to_ruby
     bool.should == false
 
-    ptr = Idev::C.plist_new_bool(true)
+    ptr = Idev::C::Plist_t.from_ruby(true)
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    bool = Plist.pointer_to_ruby(ptr)
+    bool = ptr.to_ruby
     bool.should == true
   end
 
   it "should convert a plist pointer from and to an unsigned int" do
-    ptr = Idev::C.plist_new_uint(0xdeadbeef)
+    ptr = Idev::C::Plist_t.from_ruby(0xdeadbeef)
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    val = Plist.pointer_to_ruby(ptr)
+    val = ptr.to_ruby
     val.should == 0xdeadbeef
   end
 
   it "should convert a plist pointer from and to a real number" do
-    ptr = Idev::C.plist_new_real(1234.567)
+    ptr = Idev::C::Plist_t.from_ruby(1234.567)
     ptr.should be_a FFI::Pointer
     ptr.should_not be_null
-    val = Plist.pointer_to_ruby(ptr)
+    val = ptr.to_ruby
     val.should == 1234.567
+  end
+
+  it "should convert a plist pointer from and to raw data" do
+    ptr = Idev::C::Plist_t.from_ruby(StringIO.new("some data here"))
+    ptr.should be_a FFI::Pointer
+    val = ptr.to_ruby
+    val.should be_a StringIO
+    val.string.should == "some data here"
+  end
+
+  it "should convert a plist pointer from and to raw data using new_data" do
+    ptr = Idev::C::Plist_t.new_data("some data here")
+    ptr.should be_a FFI::Pointer
+    val = ptr.to_ruby
+    val.should be_a StringIO
+    val.string.should == "some data here"
   end
 end
 
