@@ -1,6 +1,7 @@
 require 'pathname'
 $SPECROOT = Pathname(__FILE__).dirname
 require 'tmpdir'
+require 'tempfile'
 require 'rubygems'
 require 'rspec'
 require 'pry'

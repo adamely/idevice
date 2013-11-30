@@ -68,7 +68,7 @@ module Idev
       return ret
     end
 
-    def read_directory(path)
+    def read_directory(path='.')
       ret = nil
       FFI::MemoryPointer.new(:pointer) do |p_dirlist|
         Idev._handle_afc_error{ C.afc_read_directory(self, path, p_dirlist) }
@@ -116,6 +116,41 @@ module Idev
     def truncate(path, size)
       Idev._handle_afc_error{ C.afc_truncate(self, path, size) }
       return true
+    end
+
+    def cat(path, chunksize=nil, &block)
+      AFCFile.open(self, path, 'r') { |f| return f.read_all(chunksize, &block) }
+    end
+
+    def putpath(frompath, topath, chunksize=nil)
+      chunksize ||= 8192
+      wlen = 0
+
+      File.open(frompath, 'r') do |from|
+        AFCFile.open(self, topath, 'w') do |to|
+          while chunk = from.read(chunksize)
+            to.write(chunk)
+            yield chunk.size if block_given?
+            wlen+=chunk.size
+          end
+        end
+      end
+
+      return wlen
+    end
+
+    def getpath(frompath, topath, chunksize=nil)
+      wlen = 0
+      AFCFile.open(self, frompath, 'r') do |from|
+        File.open(topath, 'w') do |to|
+          from.read_all(chunksize) do |chunk|
+            to.write(chunk)
+            yield chunk.size if block_given?
+            wlen += chunk.size
+          end
+        end
+      end
+      return wlen
     end
 
     def set_file_time(path, time)
@@ -167,8 +202,8 @@ module Idev
           end
 
       afcfile=nil
-      FFI::Pointer.new(:uint64) do |p_handle|
-        Idev._handle_afc_error{ C.afc_file_close(afcclient, path, m, p_handle) }
+      FFI::MemoryPointer.new(:uint64) do |p_handle|
+        Idev._handle_afc_error{ C.afc_file_open(afcclient, path, m, p_handle) }
         afcfile = new(afcclient, p_handle.read_uint64)
       end
 
@@ -223,34 +258,39 @@ module Idev
       self.pos=0
     end
 
-    def read_all(chunksz=8192)
-      ret = StringIO.new unless block_given?
+    def read_all(chunksz=nil)
+      chunksz ||= 8192
+      ret = nil
       FFI::MemoryPointer.new(chunksz) do |buf|
-        FFI::MemoryPointer.new(:uint32) do |rlen|
-          while (err=C.afc_file_read(@afcclient, @handle, buf, buf.size, rlen)) == :SUCCESS
-            chunk = data_ptr.read_bytes(rlen.read_uint32)
+        FFI::MemoryPointer.new(:uint32) do |p_rlen|
+          while (err=C.afc_file_read(@afcclient, @handle, buf, buf.size, p_rlen)) == :SUCCESS
+            rlen = p_rlen.read_uint32
+            chunk = buf.read_bytes(rlen)
             if block_given?
               yield chunk
             else
+              ret ||= StringIO.new unless block_given?
               ret << chunk
             end
+            break if rlen == 0
           end
-          Idev._handle_afc_error{ err } if err != :END_OF_DATA
+          Idev._handle_afc_error{ err } unless [:SUCCESS,:END_OF_DATA].include?(err)
         end
       end
 
-      return ret.string unless block_given?
+      return ret.string unless ret.nil?
     end
 
     def read(len=nil, &block)
-      return read_all(&block) if len.nil?
+      return read_all(nil, &block) if len.nil?
 
-      ret = StringIO.new
+      ret = nil
 
       FFI::MemoryPointer.new(len) do |buf|
         FFI::MemoryPointer.new(:uint32) do |p_rlen|
           while (err=C.afc_file_read(@afcclient, @handle, buf, len, p_rlen) == :SUCCESS)
             rlen = p_rlen.read_uint32
+            ret ||= StringIO.new
             ret << buf.read_bytes(rlen)
             len -= rlen
             break if len <= 0
@@ -259,7 +299,7 @@ module Idev
         end
       end
 
-      return ret.string
+      return ret.string unless ret.nil?
     end
 
     def write(data)
@@ -366,7 +406,7 @@ module Idev
     attach_function :afc_file_read, [:afc_client_t, :uint64, :pointer, :uint32, :pointer], :afc_error_t
 
     # afc_error_t afc_file_write(afc_client_t client, uint64_t handle, const char *data, uint32_t length, uint32_t *bytes_written);
-    attach_function :afc_file_write, [:afc_client_t, :uint64, :string, :uint32, :pointer], :afc_error_t
+    attach_function :afc_file_write, [:afc_client_t, :uint64, :pointer, :uint32, :pointer], :afc_error_t
 
     # afc_error_t afc_file_seek(afc_client_t client, uint64_t handle, int64_t offset, int whence);
     attach_function :afc_file_seek, [:afc_client_t, :uint64, :int64, :whence_t], :afc_error_t

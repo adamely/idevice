@@ -106,9 +106,64 @@ describe Idev::AFC do
     lambda{ @afc.remove_path('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
   end
 
-  it "should put a file"
+  it "should put a file and cat it" do
+    frompath = sample_file("plist.bin")
+    remotepath = 'TESTFILEUPLOAD'
 
-  it "should get a file"
+    begin
+      @afc.putpath(frompath.to_s, remotepath).should == frompath.size
+      @afc.cat(remotepath).should == frompath.read()
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should put a file and cat it with a small chunk size" do
+    frompath = sample_file("plist.bin")
+    remotepath = 'TESTFILEUPLOAD'
+
+    begin
+      gotblock=false
+      @afc.putpath(frompath.to_s, remotepath, 2) do |chunksz|
+        gotblock=true
+        (0..2).should include(chunksz)
+      end.should == frompath.size
+      gotblock.should be_true
+
+      catsize = 0
+      catbuf = StringIO.new
+      gotblock=false
+
+      @afc.cat(remotepath, 2) do |chunk|
+        catbuf << chunk
+        catsize += chunk.size
+        gotblock=true
+        (0..2).should include(chunk.size)
+      end
+
+      catsize.should == frompath.size
+      catbuf.string.should == frompath.read()
+      gotblock.should be_true
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should get a file" do
+    frompath = sample_file("plist.bin")
+    tmpfile = Tempfile.new('TESTFILEUPLOADFORGETlocal')
+    tmppath = tmpfile.path
+    tmpfile.close
+    remotepath = 'TESTFILEUPLOADFORGET'
+    begin
+      @afc.putpath(frompath.to_s, remotepath).should == frompath.size
+      @afc.getpath(remotepath, tmppath).should == frompath.size
+      File.read(tmppath).should == frompath.read()
+    ensure
+      @afc.remove_path('TESTFILEUPLOADFORGET') rescue nil
+      File.unlink(tmppath)
+    end
+  end
 
   it "should truncate a file path"
 
