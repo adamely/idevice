@@ -88,6 +88,31 @@ module Idev
       return ret
     end
 
+    def make_directory(path)
+      Idev._handle_afc_error{ C.afc_make_directory(self, path) }
+      return true
+    end
+
+    def symlink(from, to)
+      Idev._handle_afc_error{ C.afc_make_link(self, :SYMLINK, from, to) }
+      return true
+    end
+
+    def hardlink(from, to)
+      Idev._handle_afc_error{ C.afc_make_link(self, :HARDLINK, from, to) }
+      return true
+    end
+
+    def rename_path(from, to)
+      Idev._handle_afc_error{ C.afc_rename_path(self, from, to) }
+      return true
+    end
+
+    def remove_path(path)
+      Idev._handle_afc_error{ C.afc_remove_path(self, path) }
+      return true
+    end
+
     private
     def _unbound_list_to_array(p_unbound_list)
       ret = nil
