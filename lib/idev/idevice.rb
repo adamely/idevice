@@ -133,10 +133,14 @@ module Idev
       @_idev_connection_ptr.nil?
     end
 
+    def pointer
+      _idev_ptr
+    end
+
     private
     def _idev_ptr
       return @_idev_ptr if @_idev_ptr
-      raise "device not initialize"
+      raise "device not initialized"
     end
 
     def _idev_connection_ptr
@@ -150,5 +154,44 @@ module Idev
         raise IdeviceLibError, "Library error: #{ret}"
       end
     end
+  end
+
+  module C
+    ffi_lib 'imobiledevice'
+
+    typedef :pointer, :idevice_t
+    typedef :pointer, :idevice_connection_t
+
+    typedef enum(
+      :SUCCESS,               0,
+      :INVALID_ARG,          -1,
+      :UNKNOWN_ERROR,        -2,
+      :NO_DEVICE,            -3,
+      :NOT_ENOUGH_DATA,      -4,
+      :BAD_HEADER,           -5,
+      :SSL_ERROR,            -6,
+    ), :idevice_error_t
+
+    # discovery (synchronous)
+    attach_function :idevice_set_debug_level, [:int], :void
+    attach_function :idevice_get_device_list, [:pointer, :pointer], :idevice_error_t
+    attach_function :idevice_device_list_free, [:pointer], :idevice_error_t
+
+    # device structure creation and destruction
+    attach_function :idevice_new, [:pointer, :string], :idevice_error_t
+    attach_function :idevice_free, [:pointer], :idevice_error_t
+
+    # connection/disconnection
+    attach_function :idevice_connect, [:idevice_t, :uint16, :pointer], :idevice_error_t
+    attach_function :idevice_disconnect, [:idevice_connection_t], :idevice_error_t
+
+    # communication
+    attach_function :idevice_connection_send, [:idevice_connection_t, :pointer, :uint32, :pointer], :idevice_error_t
+    attach_function :idevice_connection_receive_timeout, [:idevice_connection_t, :pointer, :uint32, :pointer, :uint], :idevice_error_t
+    attach_function :idevice_connection_receive, [:idevice_connection_t, :pointer, :uint32, :pointer], :idevice_error_t
+
+    # misc
+    attach_function :idevice_get_handle, [:idevice_t, :pointer], :idevice_error_t
+    attach_function :idevice_get_udid, [:idevice_t, :pointer], :idevice_error_t
   end
 end

@@ -4,6 +4,8 @@ require 'idev/version'
 require 'idev/c'
 require 'idev/plist'
 require 'idev/idevice'
+require 'idev/lockdown'
+require 'idev/afc'
 
 module Idev
   def self.debug_level= num
