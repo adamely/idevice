@@ -3,10 +3,13 @@ require 'idev/plist'
 require 'idev/idevice'
 
 module Idev
+  class LockdownError < IdeviceLibError
+  end
+
   def self._handle_lockdown_error
     err = yield
     if err != :SUCCESS
-      raise IdeviceLibError, "Lockdownd error: #{err}"
+      raise LockdownError, "Lockdownd error: #{err}"
     end
   end
 
@@ -31,7 +34,7 @@ module Idev
 
         lockdown_client = p_lockdown_client.read_pointer
         if lockdown_client.null?
-          raise Idev::IdeviceLibError, "lockdownd_client creation returned a NULL object"
+          raise LockdownError, "lockdownd_client creation returned a NULL object"
         else
           return new(lockdown_client)
         end
