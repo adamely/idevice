@@ -34,7 +34,6 @@ module Plist
     plist_ptr = binary_to_pointer(data)
     if plist_ptr
       res = pointer_to_ruby(plist_ptr)
-      free_pointer(plist_ptr)
       return res
     end
   end
@@ -57,10 +56,6 @@ module Plist
         end
       end
     end
-  end
-
-  def self.free_pointer(ptr)
-    Idev::C.plist_free(ptr) if ptr and not ptr.null?
   end
 end
 

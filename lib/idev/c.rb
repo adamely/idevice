@@ -3,19 +3,9 @@ require "rubygems"
 require "ffi"
 
 module FFI
-  class Pointer
-    def read_unbound_array_of_string
-      #Reads an array of strings terminated by an empty string (i.e.
-      #not length bound
-      ary = []
-      size = FFI.type_size(:string)
-      tmp = self
-      begin
-        s = tmp.read_pointer.read_string
-        ary << s
-        tmp += size
-      end while !tmp.read_pointer.null?
-      ary
+  class ManagedPointer < AutoPointer
+    def initialize(ptr)
+      super(ptr, self.class.method(:release))
     end
   end
 
@@ -57,87 +47,91 @@ module Idev
     #----------------------------------------------------------------------
     ffi_lib 'plist'
 
-    typedef :pointer, :plist_t
+    class Plist_t < FFI::ManagedPointer
+      def self.release(ptr)
+        ::Idev::C.plist_free(ptr)
+      end
+    end
 
     #PLIST_API plist_t plist_new_dict(void);
-    attach_function :plist_new_dict, [], :plist_t
+    attach_function :plist_new_dict, [], Plist_t
 
     #PLIST_API plist_t plist_new_array(void);
-    attach_function :plist_new_array, [], :plist_t
+    attach_function :plist_new_array, [], Plist_t
 
     #PLIST_API plist_t plist_new_string(const char *val);
-    attach_function :plist_new_string, [:string], :plist_t
+    attach_function :plist_new_string, [:string], Plist_t
 
     #PLIST_API plist_t plist_new_bool(uint8_t val);
-    attach_function :plist_new_bool, [:bool], :plist_t
+    attach_function :plist_new_bool, [:bool], Plist_t
 
     #PLIST_API plist_t plist_new_uint(uint64_t val);
-    attach_function :plist_new_uint, [:uint64], :plist_t
+    attach_function :plist_new_uint, [:uint64], Plist_t
 
     #PLIST_API plist_t plist_new_real(double val);
-    attach_function :plist_new_real, [:double], :plist_t
+    attach_function :plist_new_real, [:double], Plist_t
 
     #PLIST_API plist_t plist_new_data(const char *val, uint64_t length);
-    attach_function :plist_new_data, [:pointer, :uint64], :plist_t
+    attach_function :plist_new_data, [:pointer, :uint64], Plist_t
 
     #PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec);
-    attach_function :plist_new_date, [:int32, :int32], :plist_t
+    attach_function :plist_new_date, [:int32, :int32], Plist_t
 
     #PLIST_API plist_t plist_new_uid(uint64_t val);
-    attach_function :plist_new_uid, [:uint64], :plist_t
+    attach_function :plist_new_uid, [:uint64], Plist_t
 
     #PLIST_API plist_t plist_copy(plist_t node);
-    attach_function :plist_copy, [:plist_t], :plist_t
+    attach_function :plist_copy, [Plist_t], Plist_t
 
     #PLIST_API uint32_t plist_array_get_size(plist_t node);
-    attach_function :plist_array_get_size, [:plist_t], :uint32
+    attach_function :plist_array_get_size, [Plist_t], :uint32
 
     #PLIST_API plist_t plist_array_get_item(plist_t node, uint32_t n);
-    attach_function :plist_array_get_item, [:plist_t, :uint32], :plist_t
+    attach_function :plist_array_get_item, [Plist_t, :uint32], Plist_t
 
     #PLIST_API uint32_t plist_array_get_item_index(plist_t node);
-    attach_function :plist_array_get_item_index, [:plist_t], :uint32
+    attach_function :plist_array_get_item_index, [Plist_t], :uint32
 
     #PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n);
-    attach_function :plist_array_set_item, [:plist_t, :plist_t, :uint32], :void
+    attach_function :plist_array_set_item, [Plist_t, Plist_t, :uint32], :void
 
     #PLIST_API void plist_array_append_item(plist_t node, plist_t item);
-    attach_function :plist_array_append_item, [:plist_t, :plist_t], :void
+    attach_function :plist_array_append_item, [Plist_t, Plist_t], :void
 
     #PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n);
-    attach_function :plist_array_insert_item, [:plist_t, :plist_t, :uint32], :void
+    attach_function :plist_array_insert_item, [Plist_t, Plist_t, :uint32], :void
 
     #PLIST_API void plist_array_remove_item(plist_t node, uint32_t n);
-    attach_function :plist_array_remove_item, [:plist_t, :uint32], :void
+    attach_function :plist_array_remove_item, [Plist_t, :uint32], :void
 
     #PLIST_API uint32_t plist_dict_get_size(plist_t node);
-    attach_function :plist_dict_get_size, [:plist_t], :uint32
+    attach_function :plist_dict_get_size, [Plist_t], :uint32
 
     typedef :pointer, :plist_dict_iter
 
     #PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter);
-    attach_function :plist_dict_new_iter, [:plist_t, :plist_dict_iter], :void
+    attach_function :plist_dict_new_iter, [Plist_t, :plist_dict_iter], :void
 
     #PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
-    attach_function :plist_dict_next_item, [:plist_t, :plist_dict_iter, :pointer, :pointer], :void
+    attach_function :plist_dict_next_item, [Plist_t, :plist_dict_iter, :pointer, :pointer], :void
 
     #PLIST_API void plist_dict_get_item_key(plist_t node, char **key);
-    attach_function :plist_dict_get_item_key, [:plist_t, :pointer], :void
+    attach_function :plist_dict_get_item_key, [Plist_t, :pointer], :void
 
     #PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key);
-    attach_function :plist_dict_get_item, [:plist_t, :string], :plist_t
+    attach_function :plist_dict_get_item, [Plist_t, :string], Plist_t
 
     #PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item);
-    attach_function :plist_dict_set_item, [:plist_t, :string, :plist_t], :void
+    attach_function :plist_dict_set_item, [Plist_t, :string, Plist_t], :void
 
     #PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
-    attach_function :plist_dict_insert_item, [:plist_t, :string, :plist_t], :void
+    attach_function :plist_dict_insert_item, [Plist_t, :string, Plist_t], :void
 
     #PLIST_API void plist_dict_remove_item(plist_t node, const char* key);
-    attach_function :plist_dict_remove_item, [:plist_t, :string], :void
+    attach_function :plist_dict_remove_item, [Plist_t, :string], :void
 
     #PLIST_API plist_t plist_get_parent(plist_t node);
-    attach_function :plist_get_parent, [:plist_t], :plist_t
+    attach_function :plist_get_parent, [Plist_t], Plist_t
 
     typedef enum(
         :BOOLEAN,	  # Boolean, scalar type 
@@ -154,58 +148,58 @@ module Idev
     ), :plist_type
 
     #PLIST_API plist_type plist_get_node_type(plist_t node);
-    attach_function :plist_get_node_type, [:plist_t], :plist_type
+    attach_function :plist_get_node_type, [Plist_t], :plist_type
 
     #PLIST_API void plist_get_key_val(plist_t node, char **val);
-    attach_function :plist_get_key_val, [:plist_t, :pointer], :void
+    attach_function :plist_get_key_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_get_string_val(plist_t node, char **val);
-    attach_function :plist_get_string_val, [:plist_t, :pointer], :void
+    attach_function :plist_get_string_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val);
-    attach_function :plist_get_bool_val, [:plist_t, :pointer], :void
+    attach_function :plist_get_bool_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val);
-    attach_function :plist_get_uint_val, [:plist_t, :pointer], :void
+    attach_function :plist_get_uint_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_get_real_val(plist_t node, double *val);
-    attach_function :plist_get_real_val, [:plist_t, :pointer], :void
+    attach_function :plist_get_real_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length);
-    attach_function :plist_get_data_val, [:plist_t, :pointer, :pointer], :void
+    attach_function :plist_get_data_val, [Plist_t, :pointer, :pointer], :void
 
     #PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
-    attach_function :plist_get_date_val, [:plist_t, :pointer, :pointer], :void
+    attach_function :plist_get_date_val, [Plist_t, :pointer, :pointer], :void
 
     #PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val);
-    attach_function :plist_get_uid_val, [:plist_t, :pointer], :void
+    attach_function :plist_get_uid_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_set_type(plist_t node, plist_type type);
-    attach_function :plist_set_type, [:plist_t, :plist_type], :void
+    attach_function :plist_set_type, [Plist_t, :plist_type], :void
 
     #PLIST_API void plist_set_key_val(plist_t node, const char *val);
-    attach_function :plist_set_key_val, [:plist_t, :string], :void
+    attach_function :plist_set_key_val, [Plist_t, :string], :void
 
     #PLIST_API void plist_set_string_val(plist_t node, const char *val);
-    attach_function :plist_set_string_val, [:plist_t, :string], :void
+    attach_function :plist_set_string_val, [Plist_t, :string], :void
 
     #PLIST_API void plist_set_bool_val(plist_t node, uint8_t val);
-    attach_function :plist_set_bool_val, [:plist_t, :uint8], :void
+    attach_function :plist_set_bool_val, [Plist_t, :uint8], :void
 
     #PLIST_API void plist_set_uint_val(plist_t node, uint64_t val);
-    attach_function :plist_set_uint_val, [:plist_t, :uint64], :void
+    attach_function :plist_set_uint_val, [Plist_t, :uint64], :void
 
     #PLIST_API void plist_set_real_val(plist_t node, double val);
-    attach_function :plist_set_real_val, [:plist_t, :double], :void
+    attach_function :plist_set_real_val, [Plist_t, :double], :void
 
     #PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length);
-    attach_function :plist_set_data_val, [:plist_t, :string, :uint64], :void
+    attach_function :plist_set_data_val, [Plist_t, :string, :uint64], :void
 
     #PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec);
-    attach_function :plist_set_date_val, [:plist_t, :int32, :int32], :void
+    attach_function :plist_set_date_val, [Plist_t, :int32, :int32], :void
 
     #PLIST_API void plist_set_uid_val(plist_t node, uint64_t val);
-    attach_function :plist_set_uid_val, [:plist_t, :int32, :int32], :void
+    attach_function :plist_set_uid_val, [Plist_t, :int32, :int32], :void
 
     # void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
     attach_function :plist_from_bin, [:pointer, :uint32, :pointer], :void
@@ -214,12 +208,12 @@ module Idev
     attach_function :plist_from_xml, [:pointer, :uint32, :pointer], :void
 
     # void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
-    attach_function :plist_to_bin, [:plist_t, :pointer, :pointer], :void
+    attach_function :plist_to_bin, [Plist_t, :pointer, :pointer], :void
 
     # void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
-    attach_function :plist_to_xml, [:plist_t, :pointer, :pointer], :void
+    attach_function :plist_to_xml, [Plist_t, :pointer, :pointer], :void
 
-    attach_function :plist_free, [:plist_t], :void
+    attach_function :plist_free, [Plist_t], :void
 
 
     #----------------------------------------------------------------------
@@ -309,7 +303,6 @@ module Idev
       end
     end
 
-
     #lockdownd_error_t lockdownd_client_new(idevice_t device, lockdownd_client_t *client, const char *label);
     attach_function :lockdownd_client_new, [:idevice_t, :pointer, :string], :lockdownd_error_t
 
@@ -326,7 +319,7 @@ module Idev
     attach_function :lockdownd_get_value, [:lockdownd_client_t, :string, :string, :pointer], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_set_value(lockdownd_client_t client, const char *domain, const char *key, plist_t value);
-    attach_function :lockdownd_set_value, [:lockdownd_client_t, :string, :string, :plist_t], :lockdownd_error_t
+    attach_function :lockdownd_set_value, [:lockdownd_client_t, :string, :string, Plist_t], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_remove_value(lockdownd_client_t client, const char *domain, const char *key);
     attach_function :lockdownd_remove_value, [:lockdownd_client_t, :string, :string], :lockdownd_error_t
@@ -341,7 +334,7 @@ module Idev
     attach_function :lockdownd_stop_session, [:lockdownd_client_t, :string], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_send(lockdownd_client_t client, plist_t plist);
-    attach_function :lockdownd_send, [:lockdownd_client_t, :plist_t], :lockdownd_error_t
+    attach_function :lockdownd_send, [:lockdownd_client_t, Plist_t], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_receive(lockdownd_client_t client, plist_t *plist);
     attach_function :lockdownd_receive, [:lockdownd_client_t, :pointer], :lockdownd_error_t
@@ -356,7 +349,7 @@ module Idev
     attach_function :lockdownd_unpair, [:lockdownd_client_t, LockdowndPairRecord], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_activate(lockdownd_client_t client, plist_t activation_record);
-    attach_function :lockdownd_activate, [:lockdownd_client_t, :plist_t], :lockdownd_error_t
+    attach_function :lockdownd_activate, [:lockdownd_client_t, Plist_t], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_deactivate(lockdownd_client_t client);
     attach_function :lockdownd_deactivate, [:lockdownd_client_t], :lockdownd_error_t
