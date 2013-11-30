@@ -113,6 +113,15 @@ module Idev
       return true
     end
 
+    def truncate(path, size)
+      Idev._handle_afc_error{ C.afc_truncate(self, path, size) }
+      return true
+    end
+
+    def set_file_time(path, time)
+      raise NotImplementedError # XXX TODO
+    end
+
     private
     def _unbound_list_to_array(p_unbound_list)
       ret = nil
@@ -134,6 +143,140 @@ module Idev
         return Hash[ infolist.each_slice(2).to_a ]
       end
     end
+  end
+
+  class AFCFile
+    def self.open(afcclient, path, mode=:RDONLY)
+      m = case mode
+          when Symbol
+            mode
+          when 'r'
+            :RDONLY
+          when 'r+'
+            :RW
+          when 'w'
+            :WRONLY
+          when 'w+'
+            :WR
+          when 'a'
+            :APPEND
+          when 'a+'
+            :RDAPPEND
+          else
+            raise ArgumentError, "invalid file mode: #{mode.inspect}"
+          end
+
+      afcfile=nil
+      FFI::Pointer.new(:uint64) do |p_handle|
+        Idev._handle_afc_error{ C.afc_file_close(afcclient, path, m, p_handle) }
+        afcfile = new(afcclient, p_handle.read_uint64)
+      end
+
+      begin
+        yield(afcfile)
+      ensure
+        afcfile.close unless afcfile.closed?
+      end
+    end
+
+    def initialize(afcclient, handle)
+      @afcclient = afcclient
+      @handle = handle
+      @closed = false
+    end
+
+    def close
+      Idev._handle_afc_error{ C.afc_file_close(@afcclient, @handle) }
+      @closed = true
+    end
+
+    def closed?
+      @closed == true
+    end
+
+    def open?
+      not closed?
+    end
+
+    def lock(op)
+      Idev._handle_afc_error{ C.afc_file_lock(@afcclient, @handle, op) }
+      return true
+    end
+
+    def seek(offset, whence)
+      Idev._handle_afc_error{ C.afc_file_seek(@afcclient, @handle, offset, whence) }
+    end
+
+    def tell
+      FFI::MemoryPointer.new(:pointer) do |p_pos|
+        Idev._handle_afc_error{ C.afc_file_tell(@afcclient, @handle, p_pos) }
+        return p_pos.read_uint16
+      end
+    end
+    alias :pos :tell
+
+    def pos=(offset)
+      seek(offset, :SEEK_SET)
+    end
+
+    def rewind
+      self.pos=0
+    end
+
+    def read_all(chunksz=8192)
+      ret = StringIO.new unless block_given?
+      FFI::MemoryPointer.new(chunksz) do |buf|
+        FFI::MemoryPointer.new(:uint32) do |rlen|
+          while (err=C.afc_file_read(@afcclient, @handle, buf, buf.size, rlen)) == :SUCCESS
+            chunk = data_ptr.read_bytes(rlen.read_uint32)
+            if block_given?
+              yield chunk
+            else
+              ret << chunk
+            end
+          end
+          Idev._handle_afc_error{ err } if err != :END_OF_DATA
+        end
+      end
+
+      return ret.string unless block_given?
+    end
+
+    def read(len=nil, &block)
+      return read_all(&block) if len.nil?
+
+      ret = StringIO.new
+
+      FFI::MemoryPointer.new(len) do |buf|
+        FFI::MemoryPointer.new(:uint32) do |p_rlen|
+          while (err=C.afc_file_read(@afcclient, @handle, buf, len, p_rlen) == :SUCCESS)
+            rlen = p_rlen.read_uint32
+            ret << buf.read_bytes(rlen)
+            len -= rlen
+            break if len <= 0
+          end
+          Idev._handle_afc_error{ err } unless [:SUCCESS, :END_OF_DATA].include?(err)
+        end
+      end
+
+      return ret.string
+    end
+
+    def write(data)
+      bytes_written = 0
+      FFI::MemoryPointer.from_bytes(data) do |p_data|
+        FFI::MemoryPointer.new(:uint32) do |p_wlen|
+          while bytes_written < p_data.size
+            Idev._handle_afc_error{ C.afc_file_write(@afcclient, @handle, p_data, p_data.size, p_wlen) }
+            wlen = p_wlen.read_uint32
+            p_data += wlen
+            bytes_written += wlen
+          end
+        end
+      end
+      return bytes_written
+    end
+
   end
 
   module C
@@ -196,7 +339,7 @@ module Idev
     typedef :pointer, :afc_client_t
 
     # afc_error_t afc_client_new(idevice_t device, lockdownd_service_descriptor_t service, afc_client_t *client);
-    attach_function :afc_client_new, [Idevice, LockdowndServiceDescriptor, :pointer], :afc_error_t
+    attach_function :afc_client_new, [Idevice, LockdownServiceDescriptor, :pointer], :afc_error_t
 
     # afc_error_t afc_client_free(afc_client_t client);
     attach_function :afc_client_free, [:afc_client_t], :afc_error_t

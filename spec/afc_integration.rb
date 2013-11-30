@@ -69,7 +69,6 @@ describe Idev::AFC do
     end
   end
 
-
   it "should make a directory" do
     begin
       @afc.make_directory('TOTALLYATESTDIR').should be_true

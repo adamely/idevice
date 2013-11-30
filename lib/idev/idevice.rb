@@ -122,7 +122,7 @@ module Idev
           end
 
           if ierr != :UNKNOWN_ERROR # seems to indicate end of data/connection
-            raise IdeviceLibError, "Library error: #{ierr}"
+            Idev._handle_idev_error{ ierr }
           end
         end
       end
@@ -137,7 +137,7 @@ module Idev
       FFI::MemoryPointer.new(maxlen) do |data_ptr|
         FFI::MemoryPointer.new(:uint32) do |recv_bytes|
           # one-shot, read up to max-len and we're done
-          ::Idev._handle_idev_error { C.idevice_connection_receive_timeout(self, data_ptr, data_ptr.size, recv_bytes, timeout) }
+          Idev._handle_idev_error { C.idevice_connection_receive_timeout(self, data_ptr, data_ptr.size, recv_bytes, timeout) }
           recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
         end
       end

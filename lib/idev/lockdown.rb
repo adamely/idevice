@@ -122,21 +122,21 @@ module Idev
         Idev::_handle_lockdown_error{ C.lockdownd_start_service(self, identifier, p_ldsvc) }
         ldsvc = p_ldsvc.read_pointer
         unless ldsvc.null?
-          ret = LockdowndServiceDescriptor.new(ldsvc)
+          ret = LockdownServiceDescriptor.new(ldsvc)
         end
       end
       return ret
     end
   end
 
-  class LockdowndPairRecord < FFI::Struct
+  class LockdownPairRecord < FFI::Struct
     layout( :device_certificate,    :string,
            :host_certificate,      :string,
            :host_id,               :string,
            :root_certificate,      :string )
   end
 
-  class LockdowndServiceDescriptor < FFI::ManagedStruct
+  class LockdownServiceDescriptor < FFI::ManagedStruct
     layout( :port,        :uint16,
             :ssl_enabled, :uint8 )
 
@@ -210,13 +210,13 @@ module Idev
     attach_function :lockdownd_receive, [LockdownClient, :pointer], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_pair(lockdownd_client_t client, lockdownd_pair_record_t pair_record);
-    attach_function :lockdownd_pair, [LockdownClient, LockdowndPairRecord], :lockdownd_error_t
+    attach_function :lockdownd_pair, [LockdownClient, LockdownPairRecord], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_validate_pair(lockdownd_client_t client, lockdownd_pair_record_t pair_record);
-    attach_function :lockdownd_validate_pair, [LockdownClient, LockdowndPairRecord], :lockdownd_error_t
+    attach_function :lockdownd_validate_pair, [LockdownClient, LockdownPairRecord], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_unpair(lockdownd_client_t client, lockdownd_pair_record_t pair_record);
-    attach_function :lockdownd_unpair, [LockdownClient, LockdowndPairRecord], :lockdownd_error_t
+    attach_function :lockdownd_unpair, [LockdownClient, LockdownPairRecord], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_activate(lockdownd_client_t client, plist_t activation_record);
     attach_function :lockdownd_activate, [LockdownClient, Plist_t], :lockdownd_error_t
@@ -246,6 +246,6 @@ module Idev
     attach_function :lockdownd_data_classes_free, [:pointer], :lockdownd_error_t
 
     #lockdownd_error_t lockdownd_service_descriptor_free(lockdownd_service_descriptor_t service);
-    attach_function :lockdownd_service_descriptor_free, [LockdowndServiceDescriptor], :lockdownd_error_t
+    attach_function :lockdownd_service_descriptor_free, [LockdownServiceDescriptor], :lockdownd_error_t
   end
 end
