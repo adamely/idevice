@@ -63,4 +63,8 @@ describe Idev::AFC do
   it "should truncate a file path"
 
   it "should make a directory"
+
+  it "should make a link"
+
+  it "should set file time"
 end

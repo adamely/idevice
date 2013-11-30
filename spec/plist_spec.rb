@@ -92,6 +92,14 @@ describe Plist do
     val.should == 0xdeadbeef
   end
 
+  it "should convert a negative number to an unsigned 64-bit int" do
+    ptr = Idev::Plist_t.from_ruby(-2)
+    ptr.should be_a FFI::Pointer
+    ptr.should_not be_null
+    val = ptr.to_ruby
+    val.should == 0xfffffffffffffffe
+  end
+
   it "should convert a plist pointer from and to an unsigned int using from_ruby" do
     ptr = Idev::Plist_t.from_ruby(0xdeadbeef)
     ptr.should be_a FFI::Pointer
@@ -107,6 +115,15 @@ describe Plist do
     val = ptr.to_ruby
     val.should == 1234.567
   end
+
+  it "should convert a plist pointer from and to a real number from an integer" do
+    ptr = Idev::Plist_t.new_real(1234)
+    ptr.should be_a FFI::Pointer
+    ptr.should_not be_null
+    val = ptr.to_ruby
+    val.should == 1234.0
+  end
+
 
   it "should convert a plist pointer from and to a real number using from_ruby" do
     ptr = Idev::Plist_t.from_ruby(1234.567)
