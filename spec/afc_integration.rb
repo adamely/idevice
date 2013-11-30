@@ -209,4 +209,106 @@ describe Idev::AFC do
   end
 
   it "should set file time"
+
+  it "should open a file and read all its contents" do
+    remotepath = 'TESTFILEUPLOADFOROPENANDREAD'
+
+    begin
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      dat = @afc.open(remotepath, 'r') { |f| f.read() }
+      dat.should == @fromfile.read()
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should open a file and read a few bytes from it" do
+    remotepath = 'TESTFILEUPLOADFOROPENANDREAD'
+
+    begin
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      @afc.open(remotepath, 'r') do |f|
+        f.read(6).should == "bplist"
+      end
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should open a file skip ahead a few bytes offset and read from it" do
+    remotepath = 'TESTFILEUPLOADFOROPENANDREADOFFSET'
+
+    begin
+      @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
+      @afc.open(remotepath, 'r') do |f|
+        f.pos=2
+        f.read(4).should == "list"
+      end
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should open a file and write to it" do
+    remotepath = 'TESTFILEUPLOADFOROPENANDWRITE'
+    testdata = "hellotest"
+
+    begin
+      @afc.open(remotepath, 'w') do |f|
+        f.write(testdata).should == testdata.size
+      end
+      @afc.cat(remotepath).should == testdata
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should open a file and append to it" do
+    remotepath = 'TESTFILEUPLOADFOROPENANDAPEND'
+    testdata = "hellotest"
+
+    begin
+      @afc.open(remotepath, 'w') do |f|
+        f.write(testdata).should == testdata.size
+      end
+      @afc.cat(remotepath).should == testdata
+      @afc.open(remotepath, 'a') do |f|
+        f.pos.should == 0
+        f.pos+= testdata.size
+        f.pos.should == testdata.size
+        f.write(testdata).should == testdata.size
+      end
+      @afc.cat(remotepath).should == testdata + testdata
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
+  it "should open a file jump around positions and read/write to it" do
+    remotepath = 'TESTFILEUPLOADFOROPENANDWRITE'
+    testdata = "hellotest"
+
+    begin
+      @afc.open(remotepath, 'w') do |f|
+        f.write(testdata).should == testdata.size
+      end
+      @afc.open(remotepath, 'r+') do |f|
+        f.pos.should == 0
+        f.read().should == testdata
+        f.pos.should == testdata.size
+        f.rewind
+        f.pos.should == 0
+        f.seek(0, :SEEK_END)
+        f.pos.should == testdata.size
+        f.write(testdata).should == testdata.size
+        f.pos.should == testdata.size*2
+        f.rewind
+        f.read().should == testdata*2
+      end
+      @afc.cat(remotepath).should == testdata*2
+    ensure
+      @afc.remove_path(remotepath) rescue nil
+    end
+  end
+
 end

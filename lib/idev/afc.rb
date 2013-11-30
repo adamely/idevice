@@ -164,6 +164,10 @@ module Idev
       raise NotImplementedError # XXX TODO
     end
 
+    def open(path, mode=nil, &block)
+      AFCFile.open(self,path,mode,&block)
+    end
+
     private
     def _unbound_list_to_array(p_unbound_list)
       ret = nil
@@ -192,7 +196,7 @@ module Idev
       m = case mode
           when Symbol
             mode
-          when 'r'
+          when 'r',nil
             :RDONLY
           when 'r+'
             :RW
@@ -295,7 +299,7 @@ module Idev
 
       FFI::MemoryPointer.new(len) do |buf|
         FFI::MemoryPointer.new(:uint32) do |p_rlen|
-          while (err=C.afc_file_read(@afcclient, @handle, buf, len, p_rlen) == :SUCCESS)
+          while (err=C.afc_file_read(@afcclient, @handle, buf, len, p_rlen)) == :SUCCESS
             rlen = p_rlen.read_uint32
             ret ||= StringIO.new
             ret << buf.read_bytes(rlen)
