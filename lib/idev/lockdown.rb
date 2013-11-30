@@ -117,14 +117,15 @@ module Idev
     end
 
     def start_service(identifier)
+      ret = nil
       FFI::MemoryPointer.new(:pointer) do |p_ldsvc|
         Idev::_handle_lockdown_error{ C.lockdownd_start_service(self, identifier, p_ldsvc) }
         ldsvc = p_ldsvc.read_pointer
         unless ldsvc.null?
-          return LockdowndServiceDescriptor.new(ldsvc)
+          ret = LockdowndServiceDescriptor.new(ldsvc)
         end
       end
-      return nil
+      return ret
     end
   end
 

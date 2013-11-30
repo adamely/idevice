@@ -3,12 +3,111 @@ require 'idev/idevice'
 require 'idev/lockdown'
 
 module Idev
-  class Idev::AFC < C::ManagedOpaquePointer
+  class AFCError < IdeviceLibError
+  end
+
+  def self._handle_afc_error(&block)
+    ret = block.call()
+    if ret != :SUCCESS
+      raise AFCError, "AFC error: #{ret}"
+    end
+  end
+
+  class AFC < C::ManagedOpaquePointer
     def self.release(ptr)
       C.afc_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
+      idevice = opts[:idevice] || Idevice.attach(opts)
+
+      if opts[:appid]
+        raise NotImplementedError # XXX TODO house_arrest
+      else
+        ldsvc = opts[:lockdown_service]
+        if ldsvc.nil?
+          identifier =
+            if opts[:root]
+              "com.apple.afc2"
+            elsif opts[:afc_identifier]
+              opts[:afc_identifier]
+            else
+              "com.apple.afc"
+            end
+
+          ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
+          ldsvc = ldclient.start_service(identifier)
+        end
+
+        FFI::MemoryPointer.new(:pointer) do |p_afc|
+          Idev._handle_afc_error{ C.afc_client_new(idevice, ldsvc, p_afc) }
+          afc = p_afc.read_pointer
+          raise AFCError, "afc_client_new returned a NULL afc_client_t pointer" if afc.null?
+          return new(afc)
+        end
+      end
+    end
+
+    def device_info(key=nil)
+      ret = nil
+      if key
+        FFI::MemoryPointer.new(:pointer) do |p_value|
+          Idev._handle_afc_error{ C.afc_get_device_info_key(self, key, p_value) }
+          value = p_value.read_pointer
+          unless value.null?
+            ret = value.read_string
+            C.free(value)
+          end
+        end
+      else
+        FFI::MemoryPointer.new(:pointer) do |p_infos|
+          Idev._handle_afc_error{ C.afc_get_device_info(self, p_infos) }
+          ret = _infolist_to_hash(p_infos)
+        end
+      end
+      return ret
+    end
+
+    def read_directory(path)
+      ret = nil
+      FFI::MemoryPointer.new(:pointer) do |p_dirlist|
+        Idev._handle_afc_error{ C.afc_read_directory(self, path, p_dirlist) }
+        ret = _unbound_list_to_array(p_dirlist)
+      end
+      raise AFCError, "afc_read_directory returned a null directory list for path: #{path}" if ret.nil?
+      return ret
+    end
+
+    def file_info(path)
+      ret = nil
+      FFI::MemoryPointer.new(:pointer) do |p_fileinfo|
+        Idev._handle_afc_error{ C.afc_get_file_info(self, path, p_fileinfo) }
+        ret = _infolist_to_hash(p_fileinfo)
+      end
+      raise AFCError, "afc_get_file_info returned null info for path: #{path}" if ret.nil?
+      return ret
+    end
+
+    private
+    def _unbound_list_to_array(p_unbound_list)
+      ret = nil
+      base = list = p_unbound_list.read_pointer
+      unless list.null?
+        ret = []
+        until list.read_pointer.null?
+          ret << list.read_pointer.read_string
+          list += FFI::TypeDefs[:pointer].size
+        end
+        C.idevice_device_list_free(base)
+      end
+      return ret
+    end
+
+    def _infolist_to_hash(p_infolist)
+      infolist = _unbound_list_to_array(p_infolist)
+      if infolist
+        return Hash[ infolist.each_slice(2).to_a ]
+      end
     end
   end
 
