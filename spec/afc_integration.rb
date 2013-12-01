@@ -112,7 +112,7 @@ describe Idev::AFC do
     end
   end
 
-  it "should make a symbolic link" do
+  it "should make a symbolic link to a directory" do
     begin
       @afc.symlink('.', 'TOTALLYATESTSYMLINKTOCURRENTDIR').should be_true
       result = @afc.file_info('TOTALLYATESTSYMLINKTOCURRENTDIR')
@@ -122,15 +122,43 @@ describe Idev::AFC do
     end
   end
 
-  it "should make a hard link" do
-    remotefile = 'TOTALLYATESTFILE'
-    remotelink = 'TOTEALLYATESTLINK'
+  it "should make a symbolic link to a file" do
+    remotefile = 'TOTALLYATESTFILE3'
+    remotelink = 'TOTEALLYATESTSYMLINK3'
+
+    begin
+      @afc.touch(remotefile).should be_true
+      @afc.symlink(remotefile, remotelink).should be_true
+      @afc.file_info(remotefile)[:st_ifmt].should == :S_IFREG
+      @afc.file_info(remotelink)[:st_ifmt].should == :S_IFLNK
+
+      # opening a symlinked file via AFC seems to give PERM_DENIED ?
+      #@afc.open(remotelink,'a'){|f| f.write("meep") }
+      #@afc.cat(remotefile).should == "meep"
+
+      #@afc.file_info(remotefile)[:st_ifmt].should == :S_IFREG
+      #@afc.file_info(remotelink)[:st_ifmt].should == :S_IFLNK
+    ensure
+      @afc.remove_path(remotefile) rescue nil
+      @afc.remove_path(remotelink) rescue nil
+    end
+  end
+
+  it "should make a hard link to a file" do
+    remotefile = 'TOTALLYATESTFILE2'
+    remotelink = 'TOTEALLYATESTHARDLINK'
 
     begin
       @afc.touch(remotefile).should be_true
       @afc.hardlink(remotefile, remotelink).should be_true
-      result = @afc.file_info(remotelink)
-      result[:st_ifmt].should == :S_IFREG
+      @afc.file_info(remotefile)[:st_ifmt].should == :S_IFREG
+      @afc.file_info(remotelink)[:st_ifmt].should == :S_IFREG
+
+      @afc.open(remotelink,'a'){|f| f.write("meep") }
+      @afc.cat(remotefile).should == "meep"
+
+      @afc.file_info(remotefile)[:st_ifmt].should == :S_IFREG
+      @afc.file_info(remotelink)[:st_ifmt].should == :S_IFREG
     ensure
       @afc.remove_path(remotefile) rescue nil
       @afc.remove_path(remotelink) rescue nil
@@ -138,7 +166,7 @@ describe Idev::AFC do
   end
 
   it "should raise an error removing a non-existent path" do
-    lambda{ @afc.remove_path('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
+    lambda{ @afc.remove_path('TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
   end
 
   it "should put a file and cat it" do
