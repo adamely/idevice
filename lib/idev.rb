@@ -11,6 +11,7 @@ require 'idev/installation_proxy'
 require 'idev/misagent'
 require 'idev/diagnostics_relay'
 require 'idev/file_relay'
+require 'idev/heartbeat'
 
 module Idev
   def self.debug_level= num
