@@ -21,6 +21,7 @@ module Idev
 
     REQUEST_TYPES = [
       "All",
+      "HDMI",
       "WiFi",
       "GasGaugue",
       "NAND",
