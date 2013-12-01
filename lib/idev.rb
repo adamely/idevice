@@ -7,6 +7,7 @@ require 'idev/idevice'
 require 'idev/lockdown'
 require 'idev/house_arrest'
 require 'idev/afc'
+require 'idev/installation_proxy'
 
 module Idev
   def self.debug_level= num

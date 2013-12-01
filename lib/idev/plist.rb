@@ -158,6 +158,14 @@ module Idev
     end
   end
 
+  # for use with plists via callbacks and other cases
+  # where the ownership of the pointer is not granted
+  class Plist_t_Unmanaged < Plist_t
+    def self.release(ptr)
+      #nop
+    end
+  end
+
 
   module C
     ffi_lib 'plist'

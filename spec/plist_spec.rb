@@ -149,4 +149,6 @@ describe Plist do
     val.string.should == "some data here"
   end
 
+  it "should convert a plist date pointer from and to a ruby DateTime using from_ruby"
+
 end

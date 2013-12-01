@@ -30,7 +30,7 @@ module Idev
       FFI::MemoryPointer.new(:pointer) do |p_ha|
         Idev._handle_ha_error{ C.house_arrest_client_new(idevice, ldsvc, p_ha) }
         ha = p_ha.read_pointer
-        raise HouseArrestError, "house_arrest_client_new returned a NULL house_arrest_client_t poiter" if ha.null?
+        raise HouseArrestError, "house_arrest_client_new returned a NULL house_arrest_client_t pointer" if ha.null?
         return new(ha)
       end
     end
