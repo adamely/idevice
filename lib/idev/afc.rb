@@ -76,6 +76,7 @@ module Idev
         Idev._handle_afc_error{ C.afc_read_directory(self, path, p_dirlist) }
         ret = _unbound_list_to_array(p_dirlist)
       end
+
       raise AFCError, "afc_read_directory returned a null directory list for path: #{path}" if ret.nil?
       return ret
     end
@@ -85,9 +86,25 @@ module Idev
       FFI::MemoryPointer.new(:pointer) do |p_fileinfo|
         Idev._handle_afc_error{ C.afc_get_file_info(self, path, p_fileinfo) }
         ret = _infolist_to_hash(p_fileinfo)
+
+        # convert string values to something more useful
+        ret[:st_ifmt] = ret[:st_ifmt].to_sym if ret[:st_ifmt]
+
+        [:st_blocks, :st_nlink, :st_size].each do |k|
+          ret[k] = ret[k].to_i if ret[k]
+        end
+
+        [:st_birthtime, :st_mtime].each do |k|
+          ret[k] = _afctime_to_time(ret[k])
+        end
       end
       raise AFCError, "afc_get_file_info returned null info for path: #{path}" if ret.nil?
       return ret
+    end
+
+    def touch(path)
+      open(path, 'a'){ }
+      return true
     end
 
     def make_directory(path)
@@ -126,7 +143,17 @@ module Idev
 
     def size(path)
       res = file_info(path)
-      return res["st_size"].to_i
+      return res[:st_size].to_i
+    end
+
+    def mtime(path)
+      info = file_info(path)
+      return info[:st_mtime]
+    end
+
+    def ctime(path)
+      info = file_info(path)
+      return info[:st_birthtime]
     end
 
     def put_path(frompath, topath, chunksize=nil)
@@ -161,7 +188,16 @@ module Idev
     end
 
     def set_file_time(path, time)
-      raise NotImplementedError # XXX TODO
+      tval = case time
+             when Time
+               _time_to_afctime(time)
+             when DateTime
+               _time_to_afctime(time.to_time)
+             else
+               time
+             end
+      Idev._handle_afc_error{ C.afc_set_file_time(self, path, tval) }
+      return true
     end
 
     def open(path, mode=nil, &block)
@@ -186,9 +222,19 @@ module Idev
     def _infolist_to_hash(p_infolist)
       infolist = _unbound_list_to_array(p_infolist)
       if infolist
-        return Hash[ infolist.each_slice(2).to_a ]
+        return Hash[ infolist.each_slice(2).to_a.map{|k,v| [k.to_sym, v]} ]
       end
     end
+
+    def _afctime_to_time(timestr)
+      # using DateTime to ensure handling as UTC
+      DateTime.strptime(timestr[0..-10], "%s").to_time
+    end
+
+    def _time_to_afctime(timeval)
+      timeval.utc.to_i * 1000000000
+    end
+
   end
 
   class AFCFile

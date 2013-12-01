@@ -1,4 +1,5 @@
 require_relative 'spec_helper'
+require 'time'
 
 describe Idev::AFC do
   before :all do
@@ -13,11 +14,11 @@ describe Idev::AFC do
   it "should return device info" do
     result = @afc.device_info
     result.should be_a Hash
-    result.keys.sort.should == ["FSBlockSize", "FSFreeBytes", "FSTotalBytes", "Model"]
-    result["FSBlockSize"].should =~ /^\d+$/
-    result["FSFreeBytes"].should =~ /^\d+$/
-    result["FSTotalBytes"].should =~ /^\d+$/
-    result["FSTotalBytes"].to_i.should > result["FSFreeBytes"].to_i
+    result.keys.sort.should == [:FSBlockSize, :FSFreeBytes, :FSTotalBytes, :Model]
+    result[:FSBlockSize].should =~ /^\d+$/
+    result[:FSFreeBytes].should =~ /^\d+$/
+    result[:FSTotalBytes].should =~ /^\d+$/
+    result[:FSTotalBytes].to_i.should > result["FSFreeBytes"].to_i
   end
 
   it "should return device info for specific keys" do
@@ -45,8 +46,8 @@ describe Idev::AFC do
   it "should get file information" do
     result = @afc.file_info('/')
     result.should be_a Hash
-    result.keys.sort.should == ["st_birthtime", "st_blocks", "st_ifmt", "st_mtime", "st_nlink", "st_size"]
-    result["st_ifmt"].should == "S_IFDIR"
+    result.keys.sort.should == [:st_birthtime, :st_blocks, :st_ifmt, :st_mtime, :st_nlink, :st_size]
+    result[:st_ifmt].should == :S_IFDIR
   end
 
   it "should raise an error getting info for an invalid path" do
@@ -105,7 +106,7 @@ describe Idev::AFC do
     begin
       @afc.make_directory(remotepath).should be_true
       result = @afc.file_info(remotepath)
-      result["st_ifmt"].should == "S_IFDIR"
+      result[:st_ifmt].should == :S_IFDIR
     ensure
       @afc.remove_path(remotepath) rescue nil
     end
@@ -115,7 +116,7 @@ describe Idev::AFC do
     begin
       @afc.symlink('.', 'TOTALLYATESTSYMLINKTOCURRENTDIR').should be_true
       result = @afc.file_info('TOTALLYATESTSYMLINKTOCURRENTDIR')
-      result["st_ifmt"].should == "S_IFLNK"
+      result[:st_ifmt].should == :S_IFLNK
     ensure
       @afc.remove_path('TOTALLYATESTSYMLINKTOCURRENTDIR') rescue nil
     end
@@ -127,7 +128,7 @@ describe Idev::AFC do
       @afc.make_directory('TOTALLYATESTDIR').should be_true
       @afc.hardlink('./TOTALLYATESTDIR/', 'TOTALLYATESTHARDLINKTOCURRENTDIR').should be_true
       result = @afc.file_info('TOTALLYATESTHARDLINKTOCURRENTDIR')
-      result["st_ifmt"].should == "S_IFDIR"
+      result[:st_ifmt].should == :S_IFDIR
     ensure
       @afc.remove_path('TOTALLYATESTHARDLINKTOCURRENTDIR') rescue nil
       @afc.remove_path('TOTALLYATESTDIR') rescue nil
@@ -208,7 +209,48 @@ describe Idev::AFC do
     end
   end
 
-  it "should set file time"
+  it "should get file mtime" do
+    res = @afc.mtime('.')
+    res.should be_a Time
+    # between first iphone release and 30-sec from now
+    res.should > Time.parse("June 29, 2007")
+    res.should < (Time.now+30)
+  end
+
+  it "should get file ctime" do
+    res = @afc.mtime('.')
+    res.should be_a Time
+    # between first iphone release and 30-sec from now
+    res.should > Time.parse("June 29, 2007")
+    res.should < (Time.now+30)
+  end
+
+  it "should touch a file" do
+    remotefile = "TESTFILETOUCH"
+    begin
+      @afc.touch(remotefile).should be_true
+      @afc.cat(remotefile).should == ""
+      @afc.ctime(remotefile).should == @afc.mtime(remotefile)
+    ensure
+      @afc.remove_path(remotefile) rescue nil
+    end
+  end
+
+  it "should set file time" do
+    remotefile = "TESTINGFILETIMESETTING"
+    settime = Time.parse("June 29, 2007 4:20 UTC")
+    begin
+      @afc.touch(remotefile).should be_true
+      @afc.ctime(remotefile).should_not == settime
+      @afc.mtime(remotefile).should_not == settime
+
+      @afc.set_file_time(remotefile, settime).should be_true
+      @afc.ctime(remotefile).should == settime
+      @afc.mtime(remotefile).should == settime
+    ensure
+      @afc.remove_path(remotefile) rescue nil
+    end
+  end
 
   it "should open a file and read all its contents" do
     remotepath = 'TESTFILEUPLOADFOROPENANDREAD'
