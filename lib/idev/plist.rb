@@ -34,8 +34,13 @@ module PlistToPointer
   end
 end
 
-Array.extend(PlistToPointer)
-Hash.extend(PlistToPointer)
+class Array
+  include PlistToPointer
+end
+
+class Hash
+  include PlistToPointer
+end
 
 module Idev
   class Plist_t < C::ManagedOpaquePointer
@@ -138,7 +143,7 @@ module Idev
           else
             ptr = plist_xml_p.read_pointer
             begin
-              res = ::Plist.parse_xml(ptr.read_bytes(length))
+              res = ::Plist.parse_xml(ptr.read_string_length(length).force_encoding('UTF-8'))
             ensure
               C.free(ptr)
             end
