@@ -75,7 +75,10 @@ module Idev
         Idev._handle_afc_error{ C.afc_client_new_from_house_arrest_client(self, p_afc) }
         afc = p_afc.read_pointer
         raise AFCError, "afc_client_new_from_house_arrest_client returned a NULL afc_client_t pointer" if afc.null?
-        return AFCClient.new(afc)
+        cli =  AFCClient.new(afc)
+        # save a reference to ourselves in the afc client to avoid premature garbage collection...
+        cli.instance_variable_set(:@house_arrest, self)
+        return cli
       end
     end
 
