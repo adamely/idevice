@@ -123,15 +123,17 @@ describe Idev::AFC do
   end
 
   it "should make a hard link" do
-    pending "figure out hardlinks?" # XXX TODO
+    remotefile = 'TOTALLYATESTFILE'
+    remotelink = 'TOTEALLYATESTLINK'
+
     begin
-      @afc.make_directory('TOTALLYATESTDIR').should be_true
-      @afc.hardlink('./TOTALLYATESTDIR/', 'TOTALLYATESTHARDLINKTOCURRENTDIR').should be_true
-      result = @afc.file_info('TOTALLYATESTHARDLINKTOCURRENTDIR')
-      result[:st_ifmt].should == :S_IFDIR
+      @afc.touch(remotefile).should be_true
+      @afc.hardlink(remotefile, remotelink).should be_true
+      result = @afc.file_info(remotelink)
+      result[:st_ifmt].should == :S_IFREG
     ensure
-      @afc.remove_path('TOTALLYATESTHARDLINKTOCURRENTDIR') rescue nil
-      @afc.remove_path('TOTALLYATESTDIR') rescue nil
+      @afc.remove_path(remotefile) rescue nil
+      @afc.remove_path(remotelink) rescue nil
     end
   end
 
