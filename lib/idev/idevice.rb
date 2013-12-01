@@ -106,11 +106,15 @@ module Idev
       return
     end
 
-    # blocking read - optionally takes a block with each chunk read
-    def receive_all(timeout=0)
+    DEFAULT_RECV_TIMEOUT = 0
+    DEFAULT_RECV_CHUNKSZ = 8192
+    # blocking read - optionally yields to a block with each chunk read
+    def receive_all(timeout=nil, chunksz=nil)
+      timeout ||= DEFAULT_RECV_TIMEOUT
+      chunksz ||= DEFAULT_RECV_CHUNKSZ
       recvdata = StringIO.new unless block_given?
 
-      FFI::MemoryPointer.new(8192) do |data_ptr|
+      FFI::MemoryPointer.new(chunksz) do |data_ptr|
         FFI::MemoryPointer.new(:uint32) do |recv_bytes|
           while (ierr=C.idevice_connection_receive_timeout(self, data_ptr, data_ptr.size, recv_bytes, timeout)) == :SUCCESS
             chunk = data_ptr.read_bytes(recv_bytes.read_uint32) 
@@ -131,7 +135,8 @@ module Idev
     end
 
     # read up to maxlen bytes
-    def receive_data(maxlen, timeout=0)
+    def receive_data(maxlen, timeout=nil)
+      timeout ||= DEFAULT_RECV_TIMEOUT
       recvdata = StringIO.new
 
       FFI::MemoryPointer.new(maxlen) do |data_ptr|

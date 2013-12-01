@@ -17,6 +17,21 @@ module FFI
         p
       end
     end
+
+    def self.null_terminated_array_of_strings(strs)
+      psize = FFI::MemoryPointer.size * (strs.count+1)
+      pstrs = strs.map{|str| FFI::MemoryPointer.from_string(str) }
+      if block_given?
+        new(psize) do |aryp|
+          aryp.write_array_of_pointer(pstrs)
+          yield(aryp)
+        end
+      else
+        aryp.instance_variable_set(:@_string_pointers, pstrs) # retain reference for garbage collection
+        aryp.write_array_of_pointer(pstrs)
+        return aryp
+      end
+    end
   end
 end
 
