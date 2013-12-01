@@ -1,6 +1,7 @@
 require 'idev/c'
 require 'idev/idevice'
 require 'idev/lockdown'
+require 'idev/house_arrest'
 
 module Idev
   class AFCError < IdeviceLibError
@@ -494,6 +495,9 @@ module Idev
 
     # afc_error_t afc_get_device_info_key(afc_client_t client, const char *key, char **value);
     attach_function :afc_get_device_info_key, [:afc_client_t, :string, :pointer], :afc_error_t
+
+    #afc_error_t afc_client_new_from_house_arrest_client(house_arrest_client_t client, afc_client_t *afc_client);
+    attach_function :afc_client_new_from_house_arrest_client, [HouseArrestClient, :pointer], :afc_error_t
 
   end
 end

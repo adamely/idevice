@@ -5,6 +5,7 @@ require 'idev/c'
 require 'idev/plist'
 require 'idev/idevice'
 require 'idev/lockdown'
+require 'idev/house_arrest'
 require 'idev/afc'
 
 module Idev
