@@ -31,3 +31,7 @@ end
 if ENV["DEBUG"]
   Idev.debug_level=9
 end
+
+if ENV["GC_STRESS"]
+  GC.stress = true
+end
