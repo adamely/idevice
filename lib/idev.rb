@@ -9,6 +9,7 @@ require 'idev/house_arrest'
 require 'idev/afc'
 require 'idev/installation_proxy'
 require 'idev/misagent'
+require 'idev/diagnostics_relay'
 
 module Idev
   def self.debug_level= num
