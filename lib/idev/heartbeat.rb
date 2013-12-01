@@ -23,6 +23,8 @@ module Idev
   end
 
   module C
+    ffi_lib 'imobiledevice'
+
     typedef enum(
       :SUCCESS      ,         0,
       :INVALID_ARG  ,        -1,
