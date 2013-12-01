@@ -1,14 +1,14 @@
 require_relative 'spec_helper'
 require 'time'
 
-describe Idev::AFC do
+describe Idev::AFCClient do
   before :all do
     @idevice = Idev::Idevice.attach
     @fromfile = sample_file("plist.bin")
   end
 
   before :each do
-    @afc = Idev::AFC.attach(idevice:@idevice)
+    @afc = Idev::AFCClient.attach(idevice:@idevice)
   end
 
   it "should return device info" do

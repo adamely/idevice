@@ -148,6 +148,9 @@ module Idev
       end
     end
 
+    def to_plist_t
+      self
+    end
   end
 
 

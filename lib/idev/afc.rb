@@ -16,7 +16,7 @@ module Idev
     end
   end
 
-  class AFC < C::ManagedOpaquePointer
+  class AFCClient < C::ManagedOpaquePointer
     def self.release(ptr)
       C.afc_client_free(ptr) unless ptr.null?
     end
@@ -25,7 +25,8 @@ module Idev
       idevice = opts[:idevice] || Idevice.attach(opts)
 
       if opts[:appid]
-        raise NotImplementedError # XXX TODO house_arrest
+        return HouseArrestClient.attach(opts).afc_client_for_container(opts[:appid])
+
       else
         ldsvc = opts[:lockdown_service]
         if ldsvc.nil?
@@ -81,6 +82,7 @@ module Idev
       raise AFCError, "afc_read_directory returned a null directory list for path: #{path}" if ret.nil?
       return ret
     end
+    alias :ls :read_directory
 
     def file_info(path)
       ret = nil
@@ -102,6 +104,7 @@ module Idev
       raise AFCError, "afc_get_file_info returned null info for path: #{path}" if ret.nil?
       return ret
     end
+    alias :stat :file_info
 
     def touch(path)
       open(path, 'a'){ }
@@ -112,34 +115,39 @@ module Idev
       Idev._handle_afc_error{ C.afc_make_directory(self, path) }
       return true
     end
+    alias :mkdir :make_directory
 
     def symlink(from, to)
       Idev._handle_afc_error{ C.afc_make_link(self, :SYMLINK, from, to) }
       return true
     end
+    alias :ln_s :symlink
 
     def hardlink(from, to)
       Idev._handle_afc_error{ C.afc_make_link(self, :HARDLINK, from, to) }
       return true
     end
+    alias :ln :hardlink
 
     def rename_path(from, to)
       Idev._handle_afc_error{ C.afc_rename_path(self, from, to) }
       return true
     end
+    alias :mv :rename_path
 
     def remove_path(path)
       Idev._handle_afc_error{ C.afc_remove_path(self, path) }
       return true
     end
+    alias :rm :remove_path
 
     def truncate(path, size)
       Idev._handle_afc_error{ C.afc_truncate(self, path, size) }
       return true
     end
 
-    def cat(path, chunksize=nil, &block)
-      AFCFile.open(self, path, 'r') { |f| return f.read_all(chunksize, &block) }
+    def cat(path, chunksz=nil, &block)
+      AFCFile.open(self, path, 'r') { |f| return f.read_all(chunksz, &block) }
     end
 
     def size(path)
@@ -157,13 +165,13 @@ module Idev
       return info[:st_birthtime]
     end
 
-    def put_path(frompath, topath, chunksize=nil)
-      chunksize ||= AFC_DEFAULT_CHUNKSIZE
+    def put_path(frompath, topath, chunksz=nil)
+      chunksz ||= AFC_DEFAULT_CHUNKSIZE
       wlen = 0
 
       File.open(frompath, 'r') do |from|
         AFCFile.open(self, topath, 'w') do |to|
-          while chunk = from.read(chunksize)
+          while chunk = from.read(chunksz)
             to.write(chunk)
             yield chunk.size if block_given?
             wlen+=chunk.size
@@ -174,11 +182,11 @@ module Idev
       return wlen
     end
 
-    def getpath(frompath, topath, chunksize=nil)
+    def getpath(frompath, topath, chunksz=nil)
       wlen = 0
       AFCFile.open(self, frompath, 'r') do |from|
         File.open(topath, 'w') do |to|
-          from.read_all(chunksize) do |chunk|
+          from.read_all(chunksz) do |chunk|
             to.write(chunk)
             yield chunk.size if block_given?
             wlen += chunk.size
@@ -434,67 +442,65 @@ module Idev
 
     typedef enum( :SEEK_SET, :SEEK_CUR, :SEEK_END ), :whence_t
 
-    typedef :pointer, :afc_client_t
-
     # afc_error_t afc_client_new(idevice_t device, lockdownd_service_descriptor_t service, afc_client_t *client);
     attach_function :afc_client_new, [Idevice, LockdownServiceDescriptor, :pointer], :afc_error_t
 
     # afc_error_t afc_client_free(afc_client_t client);
-    attach_function :afc_client_free, [:afc_client_t], :afc_error_t
+    attach_function :afc_client_free, [AFCClient], :afc_error_t
 
     # afc_error_t afc_get_device_info(afc_client_t client, char ***infos);
-    attach_function :afc_get_device_info, [:afc_client_t, :pointer], :afc_error_t
+    attach_function :afc_get_device_info, [AFCClient, :pointer], :afc_error_t
 
     # afc_error_t afc_read_directory(afc_client_t client, const char *dir, char ***list);
-    attach_function :afc_read_directory, [:afc_client_t, :string, :pointer], :afc_error_t
+    attach_function :afc_read_directory, [AFCClient, :string, :pointer], :afc_error_t
 
     # afc_error_t afc_get_file_info(afc_client_t client, const char *filename, char ***infolist);
-    attach_function :afc_get_file_info, [:afc_client_t, :string, :pointer], :afc_error_t
+    attach_function :afc_get_file_info, [AFCClient, :string, :pointer], :afc_error_t
 
     # afc_error_t afc_file_open(afc_client_t client, const char *filename, afc_file_mode_t file_mode, uint64_t *handle);
-    attach_function :afc_file_open, [:afc_client_t, :string, :afc_file_mode_t, :pointer], :afc_error_t
+    attach_function :afc_file_open, [AFCClient, :string, :afc_file_mode_t, :pointer], :afc_error_t
 
     # afc_error_t afc_file_close(afc_client_t client, uint64_t handle);
-    attach_function :afc_file_close, [:afc_client_t, :uint64], :afc_error_t
+    attach_function :afc_file_close, [AFCClient, :uint64], :afc_error_t
 
     # afc_error_t afc_file_lock(afc_client_t client, uint64_t handle, afc_lock_op_t operation);
-    attach_function :afc_file_lock, [:afc_client_t, :uint64, :afc_lock_op_t], :afc_error_t
+    attach_function :afc_file_lock, [AFCClient, :uint64, :afc_lock_op_t], :afc_error_t
 
     # afc_error_t afc_file_read(afc_client_t client, uint64_t handle, char *data, uint32_t length, uint32_t *bytes_read);
-    attach_function :afc_file_read, [:afc_client_t, :uint64, :pointer, :uint32, :pointer], :afc_error_t
+    attach_function :afc_file_read, [AFCClient, :uint64, :pointer, :uint32, :pointer], :afc_error_t
 
     # afc_error_t afc_file_write(afc_client_t client, uint64_t handle, const char *data, uint32_t length, uint32_t *bytes_written);
-    attach_function :afc_file_write, [:afc_client_t, :uint64, :pointer, :uint32, :pointer], :afc_error_t
+    attach_function :afc_file_write, [AFCClient, :uint64, :pointer, :uint32, :pointer], :afc_error_t
 
     # afc_error_t afc_file_seek(afc_client_t client, uint64_t handle, int64_t offset, int whence);
-    attach_function :afc_file_seek, [:afc_client_t, :uint64, :int64, :whence_t], :afc_error_t
+    attach_function :afc_file_seek, [AFCClient, :uint64, :int64, :whence_t], :afc_error_t
 
     # afc_error_t afc_file_tell(afc_client_t client, uint64_t handle, uint64_t *position);
-    attach_function :afc_file_tell, [:afc_client_t, :uint64, :pointer], :afc_error_t
+    attach_function :afc_file_tell, [AFCClient, :uint64, :pointer], :afc_error_t
 
     # afc_error_t afc_file_truncate(afc_client_t client, uint64_t handle, uint64_t newsize);
-    attach_function :afc_file_truncate, [:afc_client_t, :uint64, :uint64], :afc_error_t
+    attach_function :afc_file_truncate, [AFCClient, :uint64, :uint64], :afc_error_t
 
     # afc_error_t afc_remove_path(afc_client_t client, const char *path);
-    attach_function :afc_remove_path, [:afc_client_t, :string], :afc_error_t
+    attach_function :afc_remove_path, [AFCClient, :string], :afc_error_t
 
     # afc_error_t afc_rename_path(afc_client_t client, const char *from, const char *to);
-    attach_function :afc_rename_path, [:afc_client_t, :string, :string], :afc_error_t
+    attach_function :afc_rename_path, [AFCClient, :string, :string], :afc_error_t
 
     # afc_error_t afc_make_directory(afc_client_t client, const char *dir);
-    attach_function :afc_make_directory, [:afc_client_t, :string], :afc_error_t
+    attach_function :afc_make_directory, [AFCClient, :string], :afc_error_t
 
     # afc_error_t afc_truncate(afc_client_t client, const char *path, uint64_t newsize);
-    attach_function :afc_truncate, [:afc_client_t, :string, :uint64], :afc_error_t
+    attach_function :afc_truncate, [AFCClient, :string, :uint64], :afc_error_t
 
     # afc_error_t afc_make_link(afc_client_t client, afc_link_type_t linktype, const char *target, const char *linkname);
-    attach_function :afc_make_link, [:afc_client_t, :afc_link_type_t, :string, :string], :afc_error_t
+    attach_function :afc_make_link, [AFCClient, :afc_link_type_t, :string, :string], :afc_error_t
 
     # afc_error_t afc_set_file_time(afc_client_t client, const char *path, uint64_t mtime);
-    attach_function :afc_set_file_time, [:afc_client_t, :string, :uint64], :afc_error_t
+    attach_function :afc_set_file_time, [AFCClient, :string, :uint64], :afc_error_t
 
     # afc_error_t afc_get_device_info_key(afc_client_t client, const char *key, char **value);
-    attach_function :afc_get_device_info_key, [:afc_client_t, :string, :pointer], :afc_error_t
+    attach_function :afc_get_device_info_key, [AFCClient, :string, :pointer], :afc_error_t
 
     #afc_error_t afc_client_new_from_house_arrest_client(house_arrest_client_t client, afc_client_t *afc_client);
     attach_function :afc_client_new_from_house_arrest_client, [HouseArrestClient, :pointer], :afc_error_t
