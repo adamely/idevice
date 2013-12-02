@@ -12,6 +12,7 @@ require 'idev/misagent'
 require 'idev/diagnostics_relay'
 require 'idev/file_relay'
 require 'idev/heartbeat'
+require 'idev/image_mounter'
 
 module Idev
   def self.debug_level= num
