@@ -87,10 +87,19 @@ describe Idev::DiagnosticsRelayClient do
     lambda{ @drc.diagnostics }.should raise_error(Idev::DiagnosticsRelayError)
   end
 
-  it "should put a device to sleep"
+  it "should put a device to sleep" do
+    pending "don't actually put the device to sleep"
+    @drc.sleep
+  end
 
-  it "should restart a device"
+  it "should restart a device" do
+    pending "don't actually reboot the device"
+    @drc.restart(0) #(with optional flags arg)
+  end
 
-  it "should shutdown a device"
+  it "should shutdown a device" do
+    pending "don't actually shutdown the device"
+    @drc.shutdown(0) #(with optional flags arg)
+  end
 
 end
