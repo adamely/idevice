@@ -14,7 +14,7 @@ module Idev
     end
   end
 
-  class MobileBackupClient
+  class MobileBackupClient < C::ManagedOpaquePointer
     def self.release(ptr)
       C.mobilebackup_client_free(ptr) unless ptr.null?
     end
@@ -32,7 +32,7 @@ module Idev
       end
 
       FFI::MemoryPointer.new(:pointer) do |p_mb|
-        Idev._handle_mis_error{ C.mobilebackup_client_new(idevice, ldsvc, p_mb) }
+        Idev._handle_mb_error{ C.mobilebackup_client_new(idevice, ldsvc, p_mb) }
         mb = p_mb.read_pointer
         raise MisAgentError, "mobilebackup_client_new returned a NULL client" if mb.null?
         return new(mb)
@@ -124,7 +124,7 @@ module Idev
     typedef :int, :mobilebackup_flags_t
 
     #mobilebackup_error_t mobilebackup_client_new(idevice_t device, lockdownd_service_descriptor_t service, mobilebackup_client_t * client);
-    attach_function :mobile_client_new, [Idevice, LockdownServiceDescriptor, :pointer], :mobilebackup_error_t
+    attach_function :mobilebackup_client_new, [Idevice, LockdownServiceDescriptor, :pointer], :mobilebackup_error_t
 
     #mobilebackup_error_t mobilebackup_client_free(mobilebackup_client_t client);
     attach_function :mobilebackup_client_free, [MobileBackupClient], :mobilebackup_error_t
