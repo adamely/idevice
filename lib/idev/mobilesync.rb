@@ -14,6 +14,7 @@ module Idev
     end
   end
 
+  # Used to synchronize data classes with a device and computer.
   class MobileSyncClient < C::ManagedOpaquePointer
     include LibHelpers
 

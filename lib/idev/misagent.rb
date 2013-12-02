@@ -14,6 +14,7 @@ module Idev
     end
   end
 
+  # Used to manage provisioning profiles on the device.
   class MisAgentClient < C::ManagedOpaquePointer
     include LibHelpers
 

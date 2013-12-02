@@ -13,6 +13,7 @@ module Idev
     end
   end
 
+  # Used to manage device preferences, start services, pairing and activation on the device.
   class LockdownClient < C::ManagedOpaquePointer
     def self.release(ptr)
       C.lockdownd_client_free(ptr) unless ptr.null?

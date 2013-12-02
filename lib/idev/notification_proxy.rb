@@ -50,6 +50,7 @@ module Idev
     SYNC_LOCK_REQUEST         = "com.apple.itunes-mobdev.syncLockRequest"
   end
 
+  # Used to receive and post device notifications
   class NotificationProxyClient < C::ManagedOpaquePointer
     include LibHelpers
 

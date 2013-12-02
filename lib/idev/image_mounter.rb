@@ -15,6 +15,7 @@ module Idev
     end
   end
 
+  # Used to mount developer/debug disk images on the device.
   class ImageMounterClient < C::ManagedOpaquePointer
     include LibHelpers
 

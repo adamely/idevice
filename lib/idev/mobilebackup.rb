@@ -14,6 +14,7 @@ module Idev
     end
   end
 
+  # Used to backup and restore of all device data. (Pre iOS 4)
   class MobileBackupClient < C::ManagedOpaquePointer
     include LibHelpers
 

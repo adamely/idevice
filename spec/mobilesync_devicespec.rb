@@ -1,6 +1,6 @@
-require 'spec_helper'
+require_relative 'spec_helper'
 
-describe Idev::MobileBackupClient do
+describe Idev::MobileSyncClient do
   before :each do
     @sync = Idev::MobileSyncClient.attach(idevice:shared_idevice)
   end
