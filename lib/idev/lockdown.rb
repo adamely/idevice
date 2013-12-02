@@ -130,15 +130,19 @@ module Idev
   end
 
   class LockdownPairRecord < FFI::Struct
-    layout( :device_certificate,    :string,
-           :host_certificate,      :string,
-           :host_id,               :string,
-           :root_certificate,      :string )
+    layout(
+      :device_certificate,  :string,
+      :host_certificate,    :string,
+      :host_id,             :string,
+      :root_certificate,    :string,
+    )
   end
 
   class LockdownServiceDescriptor < FFI::ManagedStruct
-    layout( :port,        :uint16,
-            :ssl_enabled, :uint8 )
+    layout(
+      :port,                :uint16,
+      :ssl_enabled,         :uint8,
+    )
 
     def self.release(ptr)
       C::lockdownd_service_descriptor_free(ptr)
