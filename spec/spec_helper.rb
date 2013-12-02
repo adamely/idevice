@@ -1,4 +1,5 @@
 require 'pathname'
+require 'open3'
 $SPECROOT = Pathname(__FILE__).dirname
 require 'tmpdir'
 require 'tempfile'
@@ -29,6 +30,17 @@ RSpec.configure do |config|
 
   def shared_idevice
     $shared_idevice ||= Idev::Idevice.attach
+  end
+
+  def shell_pipe(data, cmd)
+    ret=nil
+    Open3.popen3(cmd) do |w,r,e|
+      w.write data
+      w.close
+      ret = r.read
+      r.close
+    end
+    return ret
   end
 end
 
