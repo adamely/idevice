@@ -2,6 +2,13 @@
 
 Ruby FFI bindings for libimobiledevice
 
+## Versions
+
+The rubygem version number corresponds to the libimobiledevice version
+it is built for. Where necessary, an 4th version digit will be appended
+for rubygem-specific fixes and features within a given libimobiledevice
+version cycle.
+
 ## Installation
 
 Add this line to your application's Gemfile:
