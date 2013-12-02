@@ -3,12 +3,8 @@ require 'spec_helper'
 if ENV["TEST_MOBILEBACKUP1"]
 
   describe Idev::MobileBackupClient do
-    before :all do
-      @idevice = Idev::Idevice.attach
-    end
-
     before :each do
-      @mb = Idev::MobileBackupClient.attach(idevice:@idevice)
+      @mb = Idev::MobileBackupClient.attach(idevice:shared_idevice)
     end
 
     after :each do

@@ -2,7 +2,7 @@ require_relative 'spec_helper'
 
 describe Idev::DiagnosticsRelayClient do
   before :all do
-    @idevice = Idev::Idevice.attach
+    @idevice = shared_idevice
   end
 
   before :each do

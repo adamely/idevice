@@ -1,12 +1,8 @@
 require 'spec_helper'
 
 describe Idev::MobileBackup2Client do
-  before :all do
-    @idevice = Idev::Idevice.attach
-  end
-
   before :each do
-    @mb2 = Idev::MobileBackup2Client.attach(idevice:@idevice)
+    @mb2 = Idev::MobileBackup2Client.attach(idevice:shared_idevice)
   end
 
   after :each do

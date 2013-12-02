@@ -14,12 +14,8 @@ describe Idev::LockdownClient do
   end
 
   context "an attached client" do
-    before :all do
-      @idevice = Idev::Idevice.attach
-    end
-
     before :each do
-      @lockdown = Idev::LockdownClient.attach(idevice: @idevice)
+      @lockdown = Idev::LockdownClient.attach(idevice: shared_idevice)
     end
 
     it "should list sync data classes" do

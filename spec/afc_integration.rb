@@ -3,12 +3,11 @@ require 'time'
 
 describe Idev::AFCClient do
   before :all do
-    @idevice = Idev::Idevice.attach
     @fromfile = sample_file("plist.bin")
   end
 
   before :each do
-    @afc = Idev::AFCClient.attach(idevice:@idevice)
+    @afc = Idev::AFCClient.attach(idevice:shared_idevice)
   end
 
   it "should return device info" do

@@ -1,13 +1,8 @@
 require_relative 'spec_helper'
 
 describe Idev::ImageMounterClient do
-
-  before :all do
-    @idevice = Idev::Idevice.attach
-  end
-
   before :each do
-    @imgmounter = Idev::ImageMounterClient.attach(idevice:@idevice)
+    @imgmounter = Idev::ImageMounterClient.attach(idevice:shared_idevice)
   end
 
   after :each do

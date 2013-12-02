@@ -1,9 +1,8 @@
 require_relative 'spec_helper'
 
 describe Idev::InstProxyClient do
-
-  before :all do
-    @instproxy = Idev::InstProxyClient.attach()
+  before :each do
+    @instproxy = Idev::InstProxyClient.attach(idevice:shared_idevice)
   end
 
   it "should browse installed apps" do

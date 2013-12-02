@@ -26,6 +26,10 @@ RSpec.configure do |config|
         logger
       end
   end
+
+  def shared_idevice
+    $shared_idevice ||= Idev::Idevice.attach
+  end
 end
 
 if ENV["DEBUG"]

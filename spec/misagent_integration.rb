@@ -1,8 +1,8 @@
 require_relative 'spec_helper'
 
 describe Idev::MisAgentClient do
-  before :all do
-    @mis = Idev::MisAgentClient.attach
+  before :each do
+    @mis = Idev::MisAgentClient.attach(idevice:shared_idevice)
   end
 
   it "should list installed profiles" do
