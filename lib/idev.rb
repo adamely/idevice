@@ -13,6 +13,8 @@ require 'idev/diagnostics_relay'
 require 'idev/file_relay'
 require 'idev/heartbeat'
 require 'idev/image_mounter'
+require 'idev/mobilebackup'
+require 'idev/mobilebackup2'
 
 module Idev
   def self.debug_level= num
