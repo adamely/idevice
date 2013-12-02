@@ -12,7 +12,31 @@ describe Idev::MobileBackupClient do
     @sync.should be_a Idev::MobileSyncClient
   end
 
-  it "needs functional tests" do
-    pending "writing more specs for MobileSyncClient"
-  end
+  it "should send a plist"
+
+  it "should receive a plist"
+
+  it "should start synchronizing a data class with the device"
+
+  it "should cancel"
+
+  it "should finish"
+
+  it "should get all records from a device"
+
+  it "should get changes from a device"
+
+  it "should clear all records on a device"
+
+  it "should receive changes from a device"
+
+  it "should acknowledge changes from a device"
+
+  it "should signal it is ready to send changes from the computer"
+
+  it "should send changes"
+
+  it "should remap identifiers"
+
+
 end

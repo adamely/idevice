@@ -34,6 +34,75 @@ module Idev
         return new(ms)
       end
     end
+
+    def receive_plist
+      FFI::MemoryPointer.new(:pointer) do |p_result|
+        Idev._handle_sync_error{ C.mobilesync_receive(self, p_result) }
+        result = p_result.read_pointer
+        raise MobileSyncError, "mobilesync_receive returned a null result" if result.null?
+        return Plist_t.new(result).to_ruby
+      end
+    end
+
+    def send_plist(request)
+      Idev._handle_sync_error{ C.mobilesync_send(self, request.to_plist_t) }
+      return true
+    end
+
+    #mobilesync_error_t mobilesync_start(mobilesync_client_t client, const char *data_class, mobilesync_anchors_t anchors, uint64_t computer_data_class_version, mobilesync_sync_type_t *sync_type, uint64_t *device_data_class_version, char** error_description);
+    def start(data_class, anchors, computer_data_class_version)
+      raise NotImplementedError # XXX TODO anchors arrays? RTFM
+    end
+
+    def cancel(reason)
+      Idev._handle_sync_error{ C.mobilesync_cancel(self, reason) }
+      return true
+    end
+
+    def finish
+      Idev._handle_sync_error{ C.mobilesync_finish(self) }
+      return true
+    end
+
+    def request_all_records_from_device
+      Idev._handle_sync_error{ C.mobilesync_get_all_records_from_device(self) }
+      return true
+    end
+
+    def request_changes_from_device
+      Idev._handle_sync_error{ C.mobilesync_get_changes_from_device(self) }
+      return true
+    end
+
+    def clear_all_records_on_device
+      Idev._handle_sync_error{ C.mobilesync_clear_all_records_on_device(self) }
+      return true
+    end
+
+    #mobilesync_error_t mobilesync_receive_changes(mobilesync_client_t client, plist_t *entities, uint8_t *is_last_record, plist_t *actions);
+    def receive_changes
+      raise NotImplementedError # XXX TODO RTFM
+    end
+
+    def acknowledge_changes_from_device
+      Idev._handle_sync_error{ C.mobilesync_acknowledge_changes_from_device(self) }
+      return true
+    end
+
+    def signal_ready_to_send_changes_from_computer
+      Idev._handle_sync_error{ C.mobilesync_ready_to_send_changes_from_computer(self) }
+      return true
+    end
+
+    #mobilesync_error_t mobilesync_send_changes(mobilesync_client_t client, plist_t entities, uint8_t is_last_record, plist_t actions);
+    def send_changes(entities, actions=nil)
+      raise NotImplementedError # XXX TODO RTFM
+    end
+
+    #mobilesync_error_t mobilesync_remap_identifiers(mobilesync_client_t client, plist_t *mapping);
+    def remap_identifiers(mappings)
+      raise NotImplementedError # XXX TODO RTFM
+    end
   end
 
   # Mobile Sync anchors used by the device and computer
