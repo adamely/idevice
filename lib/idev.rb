@@ -16,6 +16,7 @@ require 'idev/image_mounter'
 require 'idev/mobilebackup'
 require 'idev/mobilebackup2'
 require 'idev/mobilesync'
+require 'idev/notification_proxy'
 
 module Idev
   def self.debug_level= num
