@@ -19,15 +19,15 @@ desc "run rspec unit tests"
 RSpec::Core::RakeTask.new
 task :default => :spec
 
-desc "run rspec integration tests (requires idevice connectivity)"
-RSpec::Core::RakeTask.new(:integration) do |t|
-  t.pattern = "spec/**/*_integration.rb"
-end
-
 namespace :spec do
   desc "run spec and integration tests together"
   RSpec::Core::RakeTask.new(:all) do |t|
-    t.pattern = "spec/**/*_{integration,spec}.rb"
+    t.pattern = "spec/**/*_{devicespec,spec}.rb"
+  end
+
+  desc "run rspec integration tests (requires idevice connectivity)"
+  RSpec::Core::RakeTask.new(:device) do |t|
+    t.pattern = "spec/**/*_devicespec.rb"
   end
 end
 
