@@ -35,6 +35,74 @@ module Idev
       end
     end
 
+    def send_message(message, opts=nil)
+      if message.nil? and opts.nil?
+        raise ArgumentError, "Both message and options hash may not be nil"
+      end
+      opts = opts.to_plist_t unless opts.nil?
+      Idev._handle_mb2_error{ C.mobilebackup2_send_message(self, message, opts) }
+      return true
+    end
+
+    def receive_message
+      FFI::MemoryPointer.new(:pointer) do |p_msg|
+        FFI::MemoryPointer.new(:pointer) do |p_dlmessage|
+          Idev._handle_mb2_error{ C.mobilebackup2_receive_message(self, p_msg, p_dlmessage) }
+          dlmessage = p_dlmessage.read_pointer
+          msg = p_msg.read_pointer
+          begin
+            raise MobileBackup2Error, "mobilebackup2_receive_message returned a null message plist" if msg.null?
+            ret = Plist_t.new(msg).to_ruby
+            unless dlmessage.null?
+              ret[:dlmessage] = dlmessage.read_string
+            end
+            return ret
+          ensure
+            C.free(dlmessage) unless dlmessage.nil? or dlmessage.null?
+          end
+        end
+      end
+    end
+
+    def send_raw(data)
+      FFI::MemoryPointer.from_bytes(data) do |p_data|
+        FFI::MemoryPointer.new(:uint32) do |p_sentbytes|
+          Idev._handle_mb2_error{ C.mobilebackup2_send_raw(self, p_data, p_data.size, p_sentbytes) }
+          return p_sentbytes.read_uint32
+        end
+      end
+    end
+
+    def receive_raw(len)
+      FFI::MemoryPointer.new(len) do |p_data|
+        FFI::MemoryPointer.new(:uint32) do |p_rcvdbytes|
+          Idev._handle_mb2_error{ C.mobilebackup2_receive_raw(self, p_data, p_data.size, p_rcvdbytes) }
+          return p_data.read_bytes(p_rcvdbytes.read_uint32)
+        end
+      end
+    end
+
+    def version_exchange(local_versions)
+      local_versions = local_versions.map{|x| x.to_f } # should throw an error if one is not a float/float-able
+      FFI::MemoryPointer.new(FFI::TypeDefs[:double].size * local_versions.count) do |p_local_versions|
+        p_local_versions.write_array_of_double(local_versions)
+        FFI::MemoryPointer.new(:pointer) do |p_remote_version|
+          Idev._handle_mb2_error{ C.mobilebackup2_version_exchange(self, p_local_versions, local_versions.count, p_remote_version) }
+          return p_remote_version.read_double
+        end
+      end
+    end
+
+    def send_request(request, target_identifier, source_identifier, opts={})
+      Idev._handle_mb2_error{ C.mobilebackup2_send_request(self, request, target_id, source_id, opts.to_plist_t) }
+      return true
+    end
+
+    def send_status_response(status_code, status_message=nil, opts=nil)
+      opts = opts.to_plist_t if opts
+      Idev._handle_mb2_error{ C.mobilebackup2_send_status_response(self, status_code, status_message, opts) }
+      return true
+    end
   end
 
   module C
