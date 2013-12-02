@@ -15,19 +15,14 @@ module Idev
   end
 
   class MobileSyncClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.mobilesync_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.mobilesync")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_ms|
+        _attach_helper("com.apple.mobilesync", opts) do |idevice, ldsvc, p_ms|
         Idev._handle_sync_error{ C.mobilesync_client_new(idevice, ldsvc, p_ms) }
         ms = p_ms.read_pointer
         raise MobileSyncError, "mobilesync_client_new returned a NULL client" if ms.null?

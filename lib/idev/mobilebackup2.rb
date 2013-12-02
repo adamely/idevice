@@ -15,19 +15,14 @@ module Idev
   end
 
   class MobileBackup2Client < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.mobilebackup2_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.mobilebackup2")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_mb2|
+      _attach_helper("com.apple.mobilebackup2", opts) do |idevice, ldsvc, p_mb2|
         Idev._handle_mb2_error{ C.mobilebackup2_client_new(idevice, ldsvc, p_mb2) }
         mb2 = p_mb2.read_pointer
         raise MobileBackup2Error, "mobilebackup2_client_new returned a NULL client" if mb2.null?

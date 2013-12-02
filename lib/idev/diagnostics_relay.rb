@@ -15,6 +15,8 @@ module Idev
   end
 
   class DiagnosticsRelayClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     FLAG_WAIT_FOR_DISCONNECT = (1 << 1)
     FLAG_DISPLAY_PASS        = (1 << 2)
     FLAG_DISPLAY_FAIL        = (1 << 3)
@@ -31,7 +33,11 @@ module Idev
       C.diagnostics_relay_client_free(ptr) unless ptr.null?
     end
 
+
     def self.attach(opts={})
+      # Note, we're not using LibHelpers#_attach_helper since we need to do the fallback to
+      # the old relay service name below
+
       idevice = opts[:idevice] || Idevice.attach(opts)
       ldsvc = opts[:lockdown_service]
       unless ldsvc

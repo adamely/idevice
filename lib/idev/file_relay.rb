@@ -11,19 +11,13 @@ module Idev
   end
 
   class FileRelayClient < C::ManagedOpaquePointer
+    include LibHelpers
     def self.release(ptr)
       C.file_relay_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.mobile.file_relay")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_frc|
+      _attach_helper("com.apple.mobile.file_relay", opts) do |idevice,ldsvc,p_frc|
         Idev._handle_fr_error{ C.file_relay_client_new(idevice, ldsvc, p_frc) }
         frc = p_frc.read_pointer
         raise FileRelayError, "file_relay_client_new returned a NULL client" if frc.null?

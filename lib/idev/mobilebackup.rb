@@ -15,6 +15,8 @@ module Idev
   end
 
   class MobileBackupClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.mobilebackup_client_free(ptr) unless ptr.null?
     end
@@ -24,14 +26,7 @@ module Idev
     FLAG_RESTORE_PRESERVE_CAMERA_ROLL   = (1 << 2)
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.mobilebackup")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_mb|
+      _attach_helper("com.apple.mobilebackup", opts) do |idevice, ldsvc, p_mb|
         Idev._handle_mb_error{ C.mobilebackup_client_new(idevice, ldsvc, p_mb) }
         mb = p_mb.read_pointer
         raise MisAgentError, "mobilebackup_client_new returned a NULL client" if mb.null?

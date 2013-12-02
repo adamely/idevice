@@ -15,25 +15,19 @@ module Idev
   end
 
   class MisAgentClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.misagent_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.misagent")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_ma|
+      _attach_helper("com.apple.misagent", opts) do |idevice, ldsvc, p_ma|
         Idev._handle_mis_error{ C.misagent_client_new(idevice, ldsvc, p_ma) }
         ma = p_ma.read_pointer
         raise MisAgentError, "misagent_client_new returned a NULL misagent_client_t pointer" if ma.null?
         return new(ma)
       end
-
     end
 
     def status_code

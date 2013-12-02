@@ -36,6 +36,50 @@ module FFI
 end
 
 module Idev
+  module LibHelpers
+    def self.included(base)
+      class << base
+      private
+        def _attach_helper(svcname, opts={})
+          idevice = opts[:idevice] || Idevice.attach(opts)
+          ldsvc = opts[:lockdown_service]
+          unless ldsvc
+            ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
+            ldsvc = ldclient.start_service(svcname)
+          end
+
+          FFI::MemoryPointer.new(:pointer) do |p_client|
+            yield idevice, ldsvc, p_client
+          end
+        end
+      end
+    end
+
+  private
+
+    def _unbound_list_to_array(p_unbound_list)
+      ret = nil
+      base = list = p_unbound_list.read_pointer
+      unless list.null?
+        ret = []
+        until list.read_pointer.null?
+          ret << list.read_pointer.read_string
+          list += FFI::TypeDefs[:pointer].size
+        end
+        C.idevice_device_list_free(base)
+      end
+      return ret
+    end
+
+    def _infolist_to_hash(p_infolist)
+      infolist = _unbound_list_to_array(p_infolist)
+      if infolist
+        return Hash[ infolist.each_slice(2).to_a.map{|k,v| [k.to_sym, v]} ]
+      end
+    end
+
+  end
+
   module C
     extend FFI::Library
 

@@ -16,20 +16,49 @@ module Idev
     end
   end
 
+  # Notifications that can be received from the device
+  module NPRecvNotifications
+    SYNC_CANCEL_REQUEST       = "com.apple.itunes-client.syncCancelRequest"
+    SYNC_SUSPEND_REQUEST      = "com.apple.itunes-client.syncSuspendRequest"
+    SYNC_RESUME_REQUEST       = "com.apple.itunes-client.syncResumeRequest"
+    PHONE_NUMBER_CHANGED      = "com.apple.mobile.lockdown.phone_number_changed"
+    DEVICE_NAME_CHANGED       = "com.apple.mobile.lockdown.device_name_changed"
+    TIMEZONE_CHANGED          = "com.apple.mobile.lockdown.timezone_changed"
+    TRUSTED_HOST_ATTACHED     = "com.apple.mobile.lockdown.trusted_host_attached"
+    HOST_DETACHED             = "com.apple.mobile.lockdown.host_detached"
+    HOST_ATTACHED             = "com.apple.mobile.lockdown.host_attached"
+    REGISTRATION_FAILED       = "com.apple.mobile.lockdown.registration_failed"
+    ACTIVATION_STATE          = "com.apple.mobile.lockdown.activation_state"
+    BRICK_STATE               = "com.apple.mobile.lockdown.brick_state"
+    DISK_USAGE_CHANGED        = "com.apple.mobile.lockdown.disk_usage_changed"# /**< iOS 4.0+ */
+    DS_DOMAIN_CHANGED         = "com.apple.mobile.data_sync.domain_changed"
+    BACKUP_DOMAIN_CHANGED     = "com.apple.mobile.backup.domain_changed"
+    APP_INSTALLED             = "com.apple.mobile.application_installed"
+    APP_UNINSTALLED           = "com.apple.mobile.application_uninstalled"
+    DEV_IMAGE_MOUNTED         = "com.apple.mobile.developer_image_mounted"
+    ATTEMPTACTIVATION         = "com.apple.springboard.attemptactivation"
+    ITDBPREP_DID_END          = "com.apple.itdbprep.notification.didEnd"
+    LANGUAGE_CHANGED          = "com.apple.language.changed"
+    ADDRESS_BOOK_PREF_CHANGED = "com.apple.AddressBook.PreferenceChanged"
+  end
+
+  # Notifications that can be sent to the device
+  module NPSendNotifications
+    SYNC_WILL_START           = "com.apple.itunes-mobdev.syncWillStart"
+    SYNC_DID_START            = "com.apple.itunes-mobdev.syncDidStart"
+    SYNC_DID_FINISH           = "com.apple.itunes-mobdev.syncDidFinish"
+    SYNC_LOCK_REQUEST         = "com.apple.itunes-mobdev.syncLockRequest"
+  end
+
   class NotificationProxyClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.np_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.mobile.notification_proxy")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_np|
+      _attach_helper("com.apple.mobile.notification_proxy", opts) do |idevice, ldsvc, p_np|
         Idev._handle_np_error{ C.np_client_new(idevice, ldsvc, p_np) }
         np = p_np.read_pointer
         raise NPError, "np_client_new returned a NULL client" if np.null?
@@ -37,7 +66,42 @@ module Idev
       end
     end
 
+    def post_notification(notification)
+      Idev._handle_np_error{ C.np_post_notification(self, notification) }
+      return true
+    end
 
+    def observe_notification
+      FFI::MemoryPointer.new(:pointer) do |p_notification|
+        Idev._handle_np_error{ C.np_observe_notification(self, p_notification) }
+        notification = p_notification.read_pointer
+        unless notification.null?
+          ret = notification.read_string
+          C.free(notification)
+          return ret
+        end
+      end
+    end
+
+    def observe_notifications
+      FFI::MemoryPointer.new(:pointer) do |p_notifications|
+        Idev._handle_np_error{ C.np_observe_notifications(self, p_notifications) }
+        return _unbound_list_to_array(p_notifications)
+      end
+    end
+
+    def set_notify_callback(&block)
+      Idev._handle_np_error{ C.np_set_notify_callback(self, _cb(&block), nil) }
+      @notify_callback = block
+      return true
+    end
+
+  private
+    def _cb
+      lambda do |notification, junk|
+        yield(notification)
+      end
+    end
   end
 
   # Aliased short name for NotificationProxyClient

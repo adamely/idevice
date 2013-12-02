@@ -15,19 +15,14 @@ module Idev
   end
 
   class InstProxyClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.instproxy_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-      ldsvc = opts[:lockdown_service]
-      unless ldsvc
-        ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-        ldsvc = ldclient.start_service("com.apple.mobile.installation_proxy")
-      end
-
-      FFI::MemoryPointer.new(:pointer) do |p_ip|
+      _attach_helper("com.apple.mobile.installation_proxy", opts) do |idevice, ldsvc, p_ip|
         Idev._handle_instproxy_error{ C.instproxy_client_new(idevice, ldsvc, p_ip) }
         ip = p_ip.read_pointer
         raise InstProxyError, "instproxy_client_new returned a NULL house_arrest_client_t pointer" if ip.null?

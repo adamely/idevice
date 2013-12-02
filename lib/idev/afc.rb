@@ -17,33 +17,27 @@ module Idev
   end
 
   class AFCClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.afc_client_free(ptr) unless ptr.null?
     end
 
     def self.attach(opts={})
-      idevice = opts[:idevice] || Idevice.attach(opts)
-
       if opts[:appid]
         return HouseArrestClient.attach(opts).afc_client_for_container(opts[:appid])
 
       else
-        ldsvc = opts[:lockdown_service]
-        if ldsvc.nil?
-          identifier =
-            if opts[:root]
-              "com.apple.afc2"
-            elsif opts[:afc_identifier]
-              opts[:afc_identifier]
-            else
-              "com.apple.afc"
-            end
+        identifier =
+          if opts[:root]
+            "com.apple.afc2"
+          elsif opts[:afc_identifier]
+            opts[:afc_identifier]
+          else
+            "com.apple.afc"
+          end
 
-          ldclient = opts[:lockdown_client] || LockdownClient.attach(opts.merge(idevice:idevice))
-          ldsvc = ldclient.start_service(identifier)
-        end
-
-        FFI::MemoryPointer.new(:pointer) do |p_afc|
+        _attach_helper(identifier, opts) do |idevice, ldsvc, p_afc|
           Idev._handle_afc_error{ C.afc_client_new(idevice, ldsvc, p_afc) }
           afc = p_afc.read_pointer
           raise AFCError, "afc_client_new returned a NULL afc_client_t pointer" if afc.null?
@@ -214,27 +208,6 @@ module Idev
     end
 
     private
-    def _unbound_list_to_array(p_unbound_list)
-      ret = nil
-      base = list = p_unbound_list.read_pointer
-      unless list.null?
-        ret = []
-        until list.read_pointer.null?
-          ret << list.read_pointer.read_string
-          list += FFI::TypeDefs[:pointer].size
-        end
-        C.idevice_device_list_free(base)
-      end
-      return ret
-    end
-
-    def _infolist_to_hash(p_infolist)
-      infolist = _unbound_list_to_array(p_infolist)
-      if infolist
-        return Hash[ infolist.each_slice(2).to_a.map{|k,v| [k.to_sym, v]} ]
-      end
-    end
-
     def _afctime_to_time(timestr)
       # using DateTime to ensure handling as UTC
       DateTime.strptime(timestr[0..-10], "%s").to_time
@@ -243,8 +216,10 @@ module Idev
     def _time_to_afctime(timeval)
       timeval.utc.to_i * 1000000000
     end
-
   end
+
+  # short name alias to AFCClient
+  AFC = AFCClient
 
   class AFCFile
     def self.open(afcclient, path, mode=:RDONLY)
