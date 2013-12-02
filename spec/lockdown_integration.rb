@@ -18,6 +18,10 @@ describe Idev::LockdownClient do
       @lockdown = Idev::LockdownClient.attach(idevice: shared_idevice)
     end
 
+    it "should attach" do
+      @lockdown.should be_a Idev::LockdownClient
+    end
+
     it "should list sync data classes" do
       result = @lockdown.sync_data_classes
       result.should be_a Array

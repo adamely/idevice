@@ -5,6 +5,10 @@ describe Idev::InstProxyClient do
     @instproxy = Idev::InstProxyClient.attach(idevice:shared_idevice)
   end
 
+  it "should attach" do
+    @instproxy.should be_a Idev::InstProxyClient
+  end
+
   it "should browse installed apps" do
     browsedata = @instproxy.browse()
     browsedata.should be_a Array

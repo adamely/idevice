@@ -10,6 +10,10 @@ describe Idev::AFCClient do
     @afc = Idev::AFCClient.attach(idevice:shared_idevice)
   end
 
+  it "should attach" do
+    @afc.should be_a Idev::AFCClient
+  end
+
   it "should return device info" do
     result = @afc.device_info
     result.should be_a Hash

@@ -13,6 +13,10 @@ describe Idev::DiagnosticsRelayClient do
     @drc.goodbye rescue nil
   end
 
+  it "should attach" do
+    @drc.should be_a Idev::DiagnosticsRelayClient
+  end
+
   it "should request diagnostics" do
     result = @drc.diagnostics("All")
     result.should be_a Hash

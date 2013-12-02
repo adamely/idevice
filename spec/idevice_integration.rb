@@ -7,6 +7,10 @@ describe Idev::Idevice do
       @idevice = Idev::Idevice.attach()
     end
 
+    it "should attach" do
+      @idevice.should be_a Idev::Idevice
+    end
+
     it "should have a udid" do
       @idevice.udid.should_not be_nil
       @idevice.udid.should =~ /^[a-f0-9]{40}$/i

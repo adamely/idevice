@@ -9,6 +9,10 @@ describe Idev::ImageMounterClient do
     @imgmounter.hangup rescue nil
   end
 
+  it "should attach" do
+    @imgmounter.should be_a Idev::ImageMounterClient
+  end
+
   it "should look up whether the Developer image is mounted" do
     res=@imgmounter.lookup_image("Developer")
     res["Status"].should == "Complete"

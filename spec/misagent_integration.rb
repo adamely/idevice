@@ -5,6 +5,10 @@ describe Idev::MisAgentClient do
     @mis = Idev::MisAgentClient.attach(idevice:shared_idevice)
   end
 
+  it "should attach" do
+    @mis.should be_a Idev::MisAgentClient
+  end
+
   it "should list installed profiles" do
     profiles = @mis.profiles
     profiles.should be_a Array
