@@ -27,11 +27,11 @@ module Idev
         ldsvc = ldclient.start_service("com.apple.mobilebackup2")
       end
 
-      FFI::MemoryPointer.new(:pointer) do |p_mb|
-        Idev._handle_mb2_error{ C.mobilebackup2_client_new(idevice, ldsvc, p_mb) }
-        mb = p_mb.read_pointer
-        raise MisAgentError, "mobilebackup2_client_new returned a NULL client" if mb.null?
-        return new(mb)
+      FFI::MemoryPointer.new(:pointer) do |p_mb2|
+        Idev._handle_mb2_error{ C.mobilebackup2_client_new(idevice, ldsvc, p_mb2) }
+        mb2 = p_mb2.read_pointer
+        raise MobileBackup2Error, "mobilebackup2_client_new returned a NULL client" if mb2.null?
+        return new(mb2)
       end
     end
 
