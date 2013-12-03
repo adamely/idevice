@@ -41,7 +41,7 @@ See
 
 ## Author
 
-Eric Monti - monti.bluebox.com
+Eric Monti - monti@bluebox.com
 
 
 ## Issues / Contributing
