@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'idevice'
+require 'pp'
+
+dumpdomains = %W{
+  com.apple.disk_usage
+  com.apple.disk_usage.factory
+  com.apple.mobile.battery
+  com.apple.iqagent
+  com.apple.purplebuddy
+  com.apple.PurpleBuddy
+  com.apple.mobile.chaperone
+  com.apple.mobile.third_party_termination
+  com.apple.mobile.lockdownd
+  com.apple.mobile.lockdown_cache
+  com.apple.xcode.developerdomain
+  com.apple.international
+  com.apple.mobile.data_sync
+  com.apple.mobile.tethered_sync
+  com.apple.mobile.mobile_application_usage
+  com.apple.mobile.backup
+  com.apple.mobile.nikita
+  com.apple.mobile.restriction
+  com.apple.mobile.user_preferences
+  com.apple.mobile.sync_data_class
+  com.apple.mobile.software_behavior
+  com.apple.mobile.iTunes.SQLMusicLibraryPostProcessCommands
+  com.apple.mobile.iTunes.accessories
+  com.apple.mobile.internal
+  com.apple.mobile.wireless_lockdown
+  com.apple.fairplay
+  com.apple.iTunes
+  com.apple.mobile.iTunes.store
+  com.apple.mobile.iTunes
+}
+
+ldc = Idevice::LockdownClient.attach
+dumpdomains.each do |domain|
+  puts "[+] Dumping domain: #{domain}"
+  pp ldc.get_value(domain, nil)
+  puts
+end
