@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'idevice'
+
+instpxy = Idevice::InstProxyClient.attach
+
+lst = instpxy.browse.sort{|a,b| a["Path"] <=> b["Path"] }.map do |app|
+  puts "%s App: %s (%s - %s)\n  exe: %s/%s\n\n" % app.values_at(
+    "ApplicationType",
+    "CFBundleDisplayName",
+    "CFBundleIdentifier",
+    "CFBundleVersion",
+    "Path",
+    "CFBundleExecutable",
+  )
+end
+
