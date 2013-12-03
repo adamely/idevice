@@ -50,7 +50,7 @@ module Idev
       send_command("VendContainer", appid)
       res = get_result
       if res["Error"]
-        raise HouseArrestError, "Error vending container to appid: #{res} - #{res.inspect}"
+        raise HouseArrestError, "Error vending container to appid: #{appid} - #{res.inspect}"
       end
     end
 
@@ -58,7 +58,7 @@ module Idev
       send_command("VendDocuments", appid)
       res = get_result
       if res["Error"]
-        raise HouseArrestError, "Error vending documents to appid: #{res} - #{res.inspect}"
+        raise HouseArrestError, "Error vending documents to appid: #{appid} - #{res.inspect}"
       end
     end
 
