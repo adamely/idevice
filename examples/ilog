@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'idevice'
+
+idev = Idevice::Idevice.attach
+ldcli = Idevice::LockdownClient.attach(idevice:idev)
+syslog_ldsvc = ldcli.start_service("com.apple.syslog_relay")
+syslog_relay = idev.connect(syslog_ldsvc[:port])
+begin
+  syslog_relay.receive_all(1) {|chunk| $stdout.write chunk } while true
+rescue Interrupt
+  exit 0
+end
+
