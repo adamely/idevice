@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'idevice'
+require 'pathname'
+
+progname = File.basename($0)
+
+dmgpath = ARGV.shift
+sigpath = ARGV.shift
+
+if dmgpath.nil? or ARGV.shift
+  $stderr.puts "usage: #{File.basename $0} /path/to/DeveloperDiskImage.dmg [/path/to/DeveloperDiskImage.dmg.signature]"
+  exit(1)
+end
+
+dmg = Pathname(dmgpath)
+signature = Pathname(sigpath || "#{dmgpath}.signature")
+
+idev = Idevice::Idevice.attach()
+
+imgmnt = Idevice::ImageMounterClient.attach(idevice:idev, label:progname)
+begin
+  if imgmnt.is_mounted?("Developer")
+    $stderr.puts "[-] Error: The Developer image is already mounted on this device"
+    exit(1)
+  end
+
+  # upload the dmg
+  afc = Idevice::AFCClient.attach(idevice:idev, label:progname)
+  dstdmg = "PublicStaging/staging.dimage"
+  $stderr.puts "[+] Uploading #{dmg} to #{dstdmg}"
+  afc.put_path(dmg.to_s, dstdmg)
+
+  # mount the image as a Developer image using the provided signature
+  $stderr.puts "[+] Mounting Developer image"
+  imgmnt.mount_image dstdmg.to_s, signature.read(), "Developer"
+
+  exit(0)
+ensure
+  $stderr.puts "[.] hanging up"
+  imgmnt.hangup rescue nil
+end
