@@ -59,14 +59,14 @@ module Idevice
         err = C.misagent_copy(self, p_profiles)
         raise MisAgentError, "misagent error: #{err}" if err != :SUCCESS
 
-        profiles = p_profiles.read_pointer
-        raise MisAgentError, "misagent_copy returned null profiles plist_t" if profiles.null?
-        return Plist_t.new(profiles).to_ruby
+        profiles = p_profiles.read_pointer.read_plist_t
+        raise MisAgentError, "misagent_copy returned null profiles plist_t" if profiles.nil?
+        return profiles
       end
     end
 
     def install(profile_hash)
-      err = C.misagent_install(self, profile_hash.to_plist_t)
+      err = C.misagent_install(self, Plist_t.from_ruby(profile_hash))
       raise MisAgentError, "misagent error: #{err}" if err != :SUCCESS
 
       return status_code

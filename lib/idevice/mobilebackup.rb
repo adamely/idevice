@@ -54,19 +54,17 @@ module Idevice
       end
     end
 
-    def receive
+    def receive_plist
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.mobilebackup_receive(self, p_result)
         raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
 
-        result = p_result.read_pointer
-        raise MobileBackupError, "mobilebackup_receive returned a NULL result" if result.null?
-        return Plist_t.new(result).to_ruby
+        return p_result.read_pointer.read_plist_t
       end
     end
 
-    def send_request(plist_hash)
-      err = C.mobilebackup_send(self, plist_hash.to_plist_t)
+    def send_plist(dict)
+      err = C.mobilebackup_send(self, Plist_t.from_ruby(dict))
       raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
 
       return true
@@ -79,7 +77,7 @@ module Idevice
       base_path = manifest.delete(:base_path)
       raise ArgumentError, "The manifest must contain a :base_path key and value" if base_path.nil?
 
-      err = C.mobilebackup_request_backup(self, manifest.to_plist_t, base_path, proto_version)
+      err = C.mobilebackup_request_backup(self, Plist_t.from_ruby(manifest), base_path, proto_version)
       raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
 
       return true
@@ -98,7 +96,7 @@ module Idevice
       proto_version = manifest.delete(:proto_version) || '1.6'
       restore_flags = manifest.delete(:restore_flags) || 0
 
-      err = C.mobilebackup_request_restore(self, manifest.to_plist_t, restore_flags, proto_version)
+      err = C.mobilebackup_request_restore(self, Plist_t.from_ruby(manifest), restore_flags, proto_version)
       raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
 
       return true
@@ -109,9 +107,7 @@ module Idevice
         err = C.mobilebackup_receive_restore_file_received(self, p_result)
         raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
 
-        result = p_result.read_pointer
-        raise MobileBackupError, "mobilebackup_receive returned a NULL result" if result.null?
-        return Plist_t.new(result).to_ruby
+        return p_result.read_pointer.read_plist_t
       end
     end
 
@@ -120,9 +116,7 @@ module Idevice
         err = C.mobilebackup_receive_restore_application_received(self, p_result)
         raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
 
-        result = p_result.read_pointer
-        raise MobileBackupError, "mobilebackup_receive returned a NULL result" if result.null?
-        return Plist_t.new(result).to_ruby
+        return p_result.read_pointer.read_plist_t
       end
     end
 

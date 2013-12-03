@@ -51,7 +51,7 @@ module Idevice
     end
 
     def send_plist(obj)
-      err = C.webinspector_send(self, obj.to_plist_t)
+      err = C.webinspector_send(self, Plist_t.from_ruby(obj))
       raise WebInspectorError, "WebInspector error: #{err}" if err != :SUCCESS
       return true
     end
@@ -60,11 +60,7 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_plist|
         err = C.webinspector_receive(self, p_plist)
         raise WebInspectorError, "WebInspector error: #{err}" if err != :SUCCESS
-
-        plist = p_plist.to_pointer
-        raise WebInspectorError, "webinspector_receive returned a NULL plist" if plist.null?
-
-        return Plist.new(plist).to_ruby
+        return p_plist.to_pointer.to_plist_t
       end
     end
   end

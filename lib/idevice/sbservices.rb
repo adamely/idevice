@@ -55,16 +55,12 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_state|
         err = C.sbservices_get_icon_state(self, p_state, nil)
         raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
-
-        state = p_state.read_pointer
-        if state
-          return Plist_t.new(state).to_ruby
-        end
+        return p_state.read_pointer.read_plist_t
       end
     end
 
     def set_icon_state(newstate)
-      err = C.sbservices_set_icon_state(self, newstate.to_plist_t)
+      err = C.sbservices_set_icon_state(self, Plist_t.from_ruby(newstate))
       raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
 
       return true

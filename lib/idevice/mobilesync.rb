@@ -26,6 +26,7 @@ require 'idevice/c'
 require 'idevice/plist'
 require 'idevice/idevice'
 require 'idevice/lockdown'
+require 'time'
 
 module Idevice
   class MobileSyncError < IdeviceLibError
@@ -54,23 +55,54 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.mobilesync_receive(self, p_result)
         raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
-
-        result = p_result.read_pointer
-        raise MobileSyncError, "mobilesync_receive returned a null result" if result.null?
-        return Plist_t.new(result).to_ruby
+        return p_result.read_pointer.read_plist_t
       end
     end
 
     def send_plist(request)
-      err = C.mobilesync_send(self, request.to_plist_t)
+      err = C.mobilesync_send(self, Plist_t.from_ruby(request))
       raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
 
       return true
     end
 
-    #mobilesync_error_t mobilesync_start(mobilesync_client_t client, const char *data_class, mobilesync_anchors_t anchors, uint64_t computer_data_class_version, mobilesync_sync_type_t *sync_type, uint64_t *device_data_class_version, char** error_description);
-    def start(data_class, anchors, computer_data_class_version)
-      raise NotImplementedError # XXX TODO anchors arrays? RTFM
+    SYNC_TYPES = [
+      :FAST,  # Fast-sync requires that only the changes made since the last synchronization should be reported by the computer.
+      :SLOW,  # Slow-sync requires that all data from the computer needs to be synchronized/sent.
+      :RESET, # Reset-sync signals that the computer should send all data again.
+    ]
+
+    def start(data_class, anchors, data_class_version=106)
+      anchors = C.mobilesync_anchors_new(*anchors)
+
+      FFI::MemoryPointer.new(:int) do |p_sync_type|
+        FFI::MemoryPointer.new(:uint64) do |p_dev_data_class_version|
+          FFI::MemoryPointer.new(:pointer) do |p_error|
+            err = C.mobilesync_send(self, data_class, anchors, data_class_version, p_sync_type, p_dev_data_class_version, p_error)
+            errstr = nil
+            p_errstr = p_error.read_pointer
+            unless p_errstr.null?
+              errstr = p_errstr.read_string
+              C.free(p_errstr)
+            end
+
+            if err != :SUCCESS
+              msg = "MobileSync error: #{err}"
+              msg << "(#{errstr})" if errstr
+              raise MobileSyncError, msg
+            end
+
+            sync_type = sync_type.read_int
+            ddc_ver = p_device_data_class_version.read_uint64
+
+            return({
+              sync_type: (SYNC_TYPES[sync_type] || sync_type),
+              device_data_class_version: ddc_ver,
+              error: errstr,
+            })
+          end
+        end
+      end
     end
 
     def cancel(reason)
@@ -108,9 +140,28 @@ module Idevice
       return true
     end
 
-    #mobilesync_error_t mobilesync_receive_changes(mobilesync_client_t client, plist_t *entities, uint8_t *is_last_record, plist_t *actions);
     def receive_changes
-      raise NotImplementedError # XXX TODO RTFM
+      ret = []
+
+      FFI::MemoryPointer.new(:pointer) do |p_entities|
+        FFI::MemoryPointer.new(:uint8) do |p_is_last_record|
+          FFI::MemoryPointer.new(:pointer) do |p_actions|
+            last_record = false
+            until last_record
+              err = C.mobilesync_receive_changes(self, p_entities, p_is_last_record, p_actions)
+              raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
+              last_record = (p_is_last_record.read_uint8 != 0)
+              ret << {
+                entities: p_entities.read_pointer.read_plist_t,
+                actions:  p_actions.read_pointer.read_plist_t,
+              }
+            end
+          end
+        end
+      end
+
+      return ret
     end
 
     def acknowledge_changes_from_device

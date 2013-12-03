@@ -81,9 +81,9 @@ module Idevice
         err = C.diagnostics_relay_request_diagnostics(self, type, p_diags)
         raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
 
-        diags = p_diags.read_pointer
-        raise DiagnosticsRelayError, "diagnostics_relay_request_diagnostics returned null diagnostics" if diags.null?
-        return Plist_t.new(diags).to_ruby
+        diags = p_diags.read_pointer.read_plist_t
+        raise DiagnosticsRelayError, "diagnostics_relay_request_diagnostics returned null diagnostics" if diags.nil?
+        return diags
       end
     end
 
@@ -91,9 +91,9 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.diagnostics_relay_query_mobilegestalt(self, Plist_t.from_ruby(keys), p_result)
         raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
-        result = p_result.read_pointer
-        raise DiagnosticsRelayError, "diagnostics_relay_query_mobilegestalt returned a null result" if result.null?
-        return Plist_t.new(result).to_ruby
+        result = p_result.read_pointer.read_plist_t
+        raise DiagnosticsRelayError, "diagnostics_relay_query_mobilegestalt returned a null result" if result.nil?
+        return result
       end
     end
 
@@ -101,9 +101,9 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.diagnostics_relay_query_ioregistry_entry(self, name, klass, p_result)
         raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
-        result = p_result.read_pointer
-        raise DiagnosticsRelayError, "diagnostics_relay_query_ioregistry_entry returned a null result" if result.null?
-        return Plist_t.new(result).to_ruby
+        result = p_result.read_pointer.read_plist_t
+        raise DiagnosticsRelayError, "diagnostics_relay_query_ioregistry_entry returned a null result" if result.nil?
+        return result
       end
     end
 
@@ -111,9 +111,9 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.diagnostics_relay_query_ioregistry_plane(self, plane, p_result)
         raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
-        result = p_result.read_pointer
-        raise DiagnosticsRelayError, "diagnostics_relay_query_ioregistry_plane returned a null result" if result.null?
-        return Plist_t.new(result).to_ruby
+        result = p_result.read_pointer.read_plist_t
+        raise DiagnosticsRelayError, "diagnostics_relay_query_ioregistry_plane returned a null result" if result.nil?
+        return result
       end
     end
 

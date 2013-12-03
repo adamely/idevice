@@ -54,7 +54,7 @@ module Idevice
       if message.nil? and opts.nil?
         raise ArgumentError, "Both message and options hash may not be nil"
       end
-      opts = opts.to_plist_t unless opts.nil?
+      opts = Plist_t.from_ruby(opts) unless opts.nil?
       err = C.mobilebackup2_send_message(self, message, opts)
       raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
 
@@ -68,14 +68,13 @@ module Idevice
           raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
 
           dlmessage = p_dlmessage.read_pointer
-          msg = p_msg.read_pointer
+          msg = p_msg.read_pointer.read_plist_t
           begin
-            raise MobileBackup2Error, "mobilebackup2_receive_message returned a null message plist" if msg.null?
-            ret = Plist_t.new(msg).to_ruby
+            raise MobileBackup2Error, "mobilebackup2_receive_message returned a null message plist" if msg.nil?
             unless dlmessage.null?
-              ret[:dlmessage] = dlmessage.read_string
+              msg[:dlmessage] = dlmessage.read_string
             end
-            return ret
+            return msg
           ensure
             C.free(dlmessage) unless dlmessage.nil? or dlmessage.null?
           end
@@ -119,14 +118,14 @@ module Idevice
     end
 
     def send_request(request, target_identifier, source_identifier, opts={})
-      err = C.mobilebackup2_send_request(self, request, target_id, source_id, opts.to_plist_t)
+      err = C.mobilebackup2_send_request(self, request, target_id, source_id, Plist_t.from_ruby(opts))
       raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
 
       return true
     end
 
     def send_status_response(status_code, status_message=nil, opts=nil)
-      opts = opts.to_plist_t if opts
+      opts = Plist_t.from_ruby(opts) if opts
       err = C.mobilebackup2_send_status_response(self, status_code, status_message, opts)
       raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
 

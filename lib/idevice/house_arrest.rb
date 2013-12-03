@@ -64,9 +64,9 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.house_arrest_get_result(self, p_result)
         raise HouseArrestError, "house_arrest error: #{err}" if err != :SUCCESS
-        result = p_result.read_pointer
-        raise HouseArrestError, "house_arrest_get_result returned a null plist_t" if result.null?
-        return Plist_t.new(result).to_ruby
+        result = p_result.read_pointer.read_plist_t
+        raise HouseArrestError, "house_arrest_get_result returned a null plist_t" if result.nil?
+        return result
       end
     end
 

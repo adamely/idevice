@@ -56,10 +56,10 @@ module Idevice
         err = C.instproxy_browse(self, opts.to_plist_t, p_result)
         raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
 
-        result = p_result.read_pointer
-        raise InstProxyError, "instproxy_browse returned a null plist_t" if result.null?
+        result = p_result.read_pointer.read_plist_t
+        raise InstProxyError, "instproxy_browse returned a null plist_t" if result.nil?
 
-        return Plist_t.new(result).to_ruby
+        return result
       end
     end
 
@@ -93,10 +93,10 @@ module Idevice
         err = C.instproxy_lookup_archives(self, opts.to_plist_t, p_result)
         raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
 
-        result = p_result.read_pointer
-        raise InstProxyError, "instproxy_lookup_archives returned a null plist_t" if result.null?
+        result = p_result.read_pointer.read_plist_t
+        raise InstProxyError, "instproxy_lookup_archives returned a null plist_t" if result.nil?
 
-        return Plist_t.new(result).to_ruby
+        return result
       end
     end
 

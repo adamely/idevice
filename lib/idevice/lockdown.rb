@@ -128,10 +128,7 @@ module Idevice
         err = C.lockdownd_get_value(self, domain, key, p_val)
         raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
 
-        pl = Plist_t.new(p_val.read_pointer)
-        unless pl.null?
-          res = pl.to_ruby
-        end
+        res = p_val.read_pointer.read_plist_t
       end
       return res
     end
@@ -175,12 +172,9 @@ module Idevice
         err = C.lockdownd_receive(self, p_plist)
         raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
 
-        plist = p_plist.read_pointer
-        raise LockdownError, "lockdownd_receive returned a NULL plist" if plist.null?
-
-        ret = Plist_t.new(plist).to_ruby
+        ret = p_plist.read_pointer.read_plist_t
       end
-      return nil
+      return ret
     end
 
     def pair(pair_record)

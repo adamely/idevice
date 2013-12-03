@@ -61,10 +61,10 @@ module Idevice
         err = C.mobile_image_mounter_lookup_image(self, image_type, p_result)
         raise ImageMounterError, "ImageMounter error: #{err}" if err != :SUCCESS
 
-        result = p_result.read_pointer
-        raise ImageMounterError, "mobile_image_mounter_lookup_image returned a NULL result" if result.null?
+        result = p_result.read_pointer.read_plist_t
+        raise ImageMounterError, "mobile_image_mounter_lookup_image returned a NULL result" if result.nil?
 
-        return Plist_t.new(result).to_ruby
+        return result
       end
     end
 
@@ -75,10 +75,10 @@ module Idevice
           err = C.mobile_image_mounter_mount_image(self, path, p_signature, p_signature.size, image_type, p_result)
           raise ImageMounterError, "ImageMounter error: #{err}" if err != :SUCCESS
 
-          result = p_result.read_pointer
-          raise ImageMounterError, "mobile_image_mounter_mount_image returned a NULL result" if result.null?
+          result = p_result.read_pointer.read_plist_t
+          raise ImageMounterError, "mobile_image_mounter_mount_image returned a NULL result" if result.nil?
 
-          return Plist_t.new(result).to_ruby
+          return result
         end
       end
     end

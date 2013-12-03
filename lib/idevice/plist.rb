@@ -358,3 +358,13 @@ module Idevice
 
   end
 end
+
+module FFI
+  class Pointer
+    def read_plist_t
+      unless self.null?
+        return Idevice::Plist_t.new(self).to_ruby
+      end
+    end
+  end
+end

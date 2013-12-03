@@ -81,10 +81,7 @@ module Idevice
         err = C.restored_query_value(self, key, p_value)
         raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
 
-        value = p_value.read_pointer
-        if value
-          return Plist_t.new(value).to_ruby
-        end
+        return p_value.read_pointer.read_plist_t
       end
     end
 
@@ -92,16 +89,12 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_value|
         err = C.restored_get_value(self, key, p_value)
         raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
-
-        value = p_value.read_pointer
-        if value
-          return Plist_t.new(value).to_ruby
-        end
+        return p_value.read_pointer.read_plist_t
       end
     end
 
     def send_plist(dict)
-      err = C.restored_send(self, hash.to_plist_t)
+      err = C.restored_send(self, Plist_t.from_ruby(hash))
       raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
 
     end
@@ -110,16 +103,12 @@ module Idevice
       FFI::MemoryPointer.new(:pointer) do |p_value|
         err = C.restored_receive(self, p_value)
         raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
-
-        value = p_value.read_pointer
-        if value
-          return Plist_t.new(value).to_ruby
-        end
+        return p_value.read_pointer.read_plist_t
       end
     end
 
     def start_restore(version, options={})
-      err = C.restored_start_restore(self, options.to_plist_t, version)
+      err = C.restored_start_restore(self, Plist_t.from_ruby(options), version)
       raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
 
       return true
