@@ -2,6 +2,7 @@ require_relative 'spec_helper'
 
 describe Idev::ScreenShotrClient do
   before :each do
+    pending "needs developer disk mounted" unless ENV["DEVTESTS"]
     @ss = Idev::ScreenShotrClient.attach(idevice:shared_idevice)
   end
 
