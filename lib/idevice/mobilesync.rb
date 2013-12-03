@@ -178,14 +178,33 @@ module Idevice
       return true
     end
 
-    #mobilesync_error_t mobilesync_send_changes(mobilesync_client_t client, plist_t entities, uint8_t is_last_record, plist_t actions);
-    def send_changes(entities, actions=nil)
-      raise NotImplementedError # XXX TODO RTFM
+    def _send_changes(entities, is_last, actions=nil)
+      act = actions ? Plist_t.from_ruby(actions) : nil
+      err = C.mobilesync_send_changes(self, Plist_t.from_ruby(entities), is_last, act)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+    end
+
+    def send_changes(changes)
+      raise TypeError, "changes must be an array" unless changes.is_a? Array
+      raise ArgumentError, "changes must not be empty" if changes.empty?
+
+      lastchange = changes.unshift
+      changes.each { |change| _send_changes(change[:entities], 0, change[:actions]) }
+      _send_changes(lastchange[:entities], 1, lastchange[:actions])
+      return true
     end
 
     #mobilesync_error_t mobilesync_remap_identifiers(mobilesync_client_t client, plist_t *mapping);
     def remap_identifiers(mappings)
-      raise NotImplementedError # XXX TODO RTFM
+      raise TypeError, "mappings must be an array" unless changes.is_a? Array
+      raise ArgumentError, "mappings must not be empty" if changes.empty?
+
+      FFI::MemoryPointer.new(FFI::Pointer.size * (mappings.count+1)) do |p_mapping|
+        p_mapping.write_array_of_pointer(mappings.map{|m| Plist_t.from_ruby(m)} + nil)
+        err = C.mobilesync_remap_identifiers(self, p_mapping)
+        raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+        return true
+      end
     end
   end
 
