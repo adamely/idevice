@@ -27,6 +27,11 @@ module Idevice
       end
     end
 
+    def is_mounted?(image_type="Developer")
+      ret = lookup_image(image_type)
+      return (ret["ImagePresent"] == true)
+    end
+
     def lookup_image(image_type="Developer")
       FFI::MemoryPointer.new(:pointer) do |p_result|
         err = C.mobile_image_mounter_lookup_image(self, image_type, p_result)
