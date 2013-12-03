@@ -113,13 +113,15 @@ module Idev
     end
 
     def set_value(domain, key, value)
-      # XXX TODO
-      raise NotImplementedError
+      err = C.lockdownd_set_value(self, domain, key, Plist_t.from_ruby(value))
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
     end
 
     def remove_value(domain, key)
-      # XXX TODO
-      raise NotImplementedError
+      err = C.lockdownd_remove_value(self, domain, key)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
     end
 
     def start_service(identifier)
@@ -134,6 +136,77 @@ module Idev
         end
       end
       return ret
+    end
+
+    def send_plist(obj)
+      err = C.lockdownd_send(self, Plist_t.from_ruby(obj))
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
+      return true
+    end
+
+    def receive_plist
+      ret = nil
+      FFI::MemoryPointer.new(:pointer) do |p_plist|
+        err = C.lockdownd_receive(self, p_plist)
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
+        plist = p_plist.read_pointer
+        raise LockdownError, "lockdownd_receive returned a NULL plist" if plist.null?
+
+        ret = Plist_t.new(plist).to_ruby
+      end
+      return nil
+    end
+
+    def pair(pair_record)
+      raise TypeError, "pair_record must be a LockdownPairRecord" unless pair_record.is_a?(LockdownPairRecord)
+      err = C.lockdownd_pair(self, pair_record)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def validate_pair(pair_record)
+      raise TypeError, "pair_record must be a LockdownPairRecord" unless pair_record.is_a?(LockdownPairRecord)
+      err = C.lockdownd_validate_pair(self, pair_record)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def unpair(pair_record)
+      raise TypeError, "pair_record must be a LockdownPairRecord" unless pair_record.is_a?(LockdownPairRecord)
+      err = C.lockdownd_unpair(self, pair_record)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def activate(activation_record)
+      err = C.lockdownd_activate(self, Plist_t.from_ruby(activation_record))
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def deactivate
+      err = C.lockdownd_deactivate(self)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def enter_recovery
+      err = C.lockdownd_enter_recovery(self)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def goodbye
+      err = C.lockdownd_goodbye(self)
+      raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def set_label(label)
+      C.lockdownd_client_set_label(self, label)
+      return true
     end
   end
 

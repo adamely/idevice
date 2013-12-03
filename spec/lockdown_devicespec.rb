@@ -18,6 +18,10 @@ describe Idev::LockdownClient do
       @lockdown = Idev::LockdownClient.attach(idevice: shared_idevice)
     end
 
+    after :each do
+      @lockdown.goodbye
+    end
+
     it "should attach" do
       @lockdown.should be_a Idev::LockdownClient
     end
