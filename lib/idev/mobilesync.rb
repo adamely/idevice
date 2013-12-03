@@ -7,13 +7,6 @@ module Idev
   class MobileSyncError < IdeviceLibError
   end
 
-  def self._handle_sync_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise MobileSyncError, "MobileSync error: #{err}"
-    end
-  end
-
   # Used to synchronize data classes with a device and computer.
   class MobileSyncClient < C::ManagedOpaquePointer
     include LibHelpers
@@ -24,7 +17,9 @@ module Idev
 
     def self.attach(opts={})
         _attach_helper("com.apple.mobilesync", opts) do |idevice, ldsvc, p_ms|
-        Idev._handle_sync_error{ C.mobilesync_client_new(idevice, ldsvc, p_ms) }
+        err = C.mobilesync_client_new(idevice, ldsvc, p_ms)
+        raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
         ms = p_ms.read_pointer
         raise MobileSyncError, "mobilesync_client_new returned a NULL client" if ms.null?
         return new(ms)
@@ -33,7 +28,9 @@ module Idev
 
     def receive_plist
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_sync_error{ C.mobilesync_receive(self, p_result) }
+        err = C.mobilesync_receive(self, p_result)
+        raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise MobileSyncError, "mobilesync_receive returned a null result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -41,7 +38,9 @@ module Idev
     end
 
     def send_plist(request)
-      Idev._handle_sync_error{ C.mobilesync_send(self, request.to_plist_t) }
+      err = C.mobilesync_send(self, request.to_plist_t)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
@@ -51,27 +50,37 @@ module Idev
     end
 
     def cancel(reason)
-      Idev._handle_sync_error{ C.mobilesync_cancel(self, reason) }
+      err = C.mobilesync_cancel(self, reason)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def finish
-      Idev._handle_sync_error{ C.mobilesync_finish(self) }
+      err = C.mobilesync_finish(self)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def request_all_records_from_device
-      Idev._handle_sync_error{ C.mobilesync_get_all_records_from_device(self) }
+      err = C.mobilesync_get_all_records_from_device(self)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def request_changes_from_device
-      Idev._handle_sync_error{ C.mobilesync_get_changes_from_device(self) }
+      err = C.mobilesync_get_changes_from_device(self)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def clear_all_records_on_device
-      Idev._handle_sync_error{ C.mobilesync_clear_all_records_on_device(self) }
+      err = C.mobilesync_clear_all_records_on_device(self)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
@@ -81,12 +90,16 @@ module Idev
     end
 
     def acknowledge_changes_from_device
-      Idev._handle_sync_error{ C.mobilesync_acknowledge_changes_from_device(self) }
+      err = C.mobilesync_acknowledge_changes_from_device(self)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def signal_ready_to_send_changes_from_computer
-      Idev._handle_sync_error{ C.mobilesync_ready_to_send_changes_from_computer(self) }
+      err = C.mobilesync_ready_to_send_changes_from_computer(self)
+      raise MobileSyncError, "MobileSync error: #{err}" if err != :SUCCESS
+
       return true
     end
 

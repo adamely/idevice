@@ -9,12 +9,6 @@ module Idev
 
   SBSError = SbservicesError
 
-  def self._handle_sbs_error(err)
-    if err != :SUCCESS
-      raise SbservicesError, "Springboard Services Error: #{err}"
-    end
-  end
-
   class SbservicesClient < C::ManagedOpaquePointer
     include LibHelpers
 
@@ -24,7 +18,9 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.springboardservices", opts) do |idevice, ldsvc, p_sbs|
-        Idev._handle_sbs_error( C.sbservices_client_new(idevice, ldsvc, p_sbs) )
+        err = C.sbservices_client_new(idevice, ldsvc, p_sbs)
+        raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
+
         sbs = p_sbs.read_pointer
         raise SBSError, "sbservices_client_new returned a NULL client" if sbs.null?
         return new(sbs)
@@ -33,7 +29,9 @@ module Idev
 
     def get_icon_state
       FFI::MemoryPointer.new(:pointer) do |p_state|
-        Idev._handle_sbs_error( C.sbservices_get_icon_state(self, p_state, nil))
+        err = C.sbservices_get_icon_state(self, p_state, nil)
+        raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
+
         state = p_state.read_pointer
         if state
           return Plist_t.new(state).to_ruby
@@ -42,14 +40,18 @@ module Idev
     end
 
     def set_icon_state(newstate)
-      Idev._handle_sbs_error( C.sbservices_set_icon_state(self, newstate.to_plist_t) )
+      err = C.sbservices_set_icon_state(self, newstate.to_plist_t)
+      raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def get_icon_pngdata(bundleid)
       FFI::MemoryPointer.new(:pointer) do |p_pngdata|
         FFI::MemoryPointer.new(:uint64) do |p_pngsize|
-          Idev._handle_sbs_error( C.sbservices_get_icon_pngdata(self, bundleid, p_pngdata, p_pngsize) )
+          err = C.sbservices_get_icon_pngdata(self, bundleid, p_pngdata, p_pngsize)
+          raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
+
           pngdata = p_pngdata.read_pointer
           unless pngdata.null?
             ret=pngdata.read_bytes(p_pngsize.read_uint64)
@@ -70,18 +72,20 @@ module Idev
 
     def get_interface_orientation
       FFI::MemoryPointer.new(:int) do |p_orientation|
-        Idev._handle_sbs_error( C.sbservices_get_interface_orientation(self, p_orientation) )
+        err = C.sbservices_get_interface_orientation(self, p_orientation)
+        raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
+
         orientation = p_orientation.read_int
         return (INTERFACE_ORIENTATIONS[orientation] or orientation)
       end
     end
 
-    #sbservices_error_t sbservices_get_home_screen_wallpaper_pngdata(sbservices_client_t client, char **pngdata, uint64_t *pngsize);
-    #attach_function :sbservices_get_home_screen_wallpaper_pngdata, [SBSClient, :pointer, :pointer], :sbservices_error_t
     def get_home_screen_wallpaper_pngdata
       FFI::MemoryPointer.new(:pointer) do |p_pngdata|
         FFI::MemoryPointer.new(:uint64) do |p_pngsize|
-          Idev._handle_sbs_error( C.sbservices_get_home_screen_wallpaper_pngdata(self, p_pngdata, p_pngsize) )
+          err = C.sbservices_get_home_screen_wallpaper_pngdata(self, p_pngdata, p_pngsize)
+          raise SbservicesError, "Springboard Services Error: #{err}" if err != :SUCCESS
+
           pngdata = p_pngdata.read_pointer
           unless pngdata.null?
             ret=pngdata.read_bytes(p_pngsize.read_uint64)

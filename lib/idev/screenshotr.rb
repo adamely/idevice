@@ -7,12 +7,6 @@ module Idev
   class ScreenShotrError < IdeviceLibError
   end
 
-  def self._handle_sshot_error(err)
-    if err != :SUCCESS
-      raise ScreenShotrError, "ScreenShotr Error: #{err}"
-    end
-  end
-
   class ScreenShotrClient < C::ManagedOpaquePointer
     include LibHelpers
 
@@ -22,7 +16,9 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobile.screenshotr", opts) do |idevice, ldsvc, p_ss|
-        Idev._handle_sshot_error( C.screenshotr_client_new(idevice, ldsvc, p_ss) )
+        err = C.screenshotr_client_new(idevice, ldsvc, p_ss)
+        raise ScreenShotrError, "ScreenShotr Error: #{err}" if err != :SUCCESS
+
         ss = p_ss.read_pointer
         raies ScreenShotrError, "screenshotr_client_new returned a NULL client" if ss.null?
         return new(ss)
@@ -32,7 +28,9 @@ module Idev
     def take_screenshot
       FFI::MemoryPointer.new(:pointer) do |p_imgdata|
         FFI::MemoryPointer.new(:uint64) do |p_imgsize|
-          Idev._handle_sshot_error( C.screenshotr_take_screenshot(self, p_imgdata, p_imgsize) )
+          err = C.screenshotr_take_screenshot(self, p_imgdata, p_imgsize)
+          raise ScreenShotrError, "ScreenShotr Error: #{err}" if err != :SUCCESS
+
           imgdata = p_imgdata.read_pointer
           unless imgdata.null?
             ret=imgdata.read_bytes(p_imgsize.read_uint64)

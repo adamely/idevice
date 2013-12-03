@@ -8,13 +8,6 @@ module Idev
   class ImageMounterError < IdeviceLibError
   end
 
-  def self._handle_mim_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise ImageMounterError, "ImageMounter error: #{err}"
-    end
-  end
-
   # Used to mount developer/debug disk images on the device.
   class ImageMounterClient < C::ManagedOpaquePointer
     include LibHelpers
@@ -25,7 +18,9 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobile.mobile_image_mounter", opts) do |idevice, ldsvc, p_mim|
-        Idev._handle_mim_error{ C.mobile_image_mounter_new(idevice, ldsvc, p_mim) }
+        err = C.mobile_image_mounter_new(idevice, ldsvc, p_mim)
+        raise ImageMounterError, "ImageMounter error: #{err}" if err != :SUCCESS
+
         mim = p_mim.read_pointer
         raise ImageMounterError, "mobile_image_mounter_new returned a NULL client" if mim.null?
         return new(mim)
@@ -34,9 +29,12 @@ module Idev
 
     def lookup_image(image_type="Developer")
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_mim_error{ C.mobile_image_mounter_lookup_image(self, image_type, p_result) }
+        err = C.mobile_image_mounter_lookup_image(self, image_type, p_result)
+        raise ImageMounterError, "ImageMounter error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise ImageMounterError, "mobile_image_mounter_lookup_image returned a NULL result" if result.null?
+
         return Plist_t.new(result).to_ruby
       end
     end
@@ -44,16 +42,21 @@ module Idev
     def mount_image(path, signature, image_type="Developer")
       FFI::MemoryPointer.from_bytes(signature) do |p_signature|
         FFI::MemoryPointer.new(:pointer) do |p_result|
-          Idev._handle_mim_error{ C.mobile_image_mounter_mount_image(self, path, p_signature, p_signature.size, image_type, p_result) }
+          err = C.mobile_image_mounter_mount_image(self, path, p_signature, p_signature.size, image_type, p_result)
+          raise ImageMounterError, "ImageMounter error: #{err}" if err != :SUCCESS
+
           result = p_result.read_pointer
           raise ImageMounterError, "mobile_image_mounter_mount_image returned a NULL result" if result.null?
+
           return Plist_t.new(result).to_ruby
         end
       end
     end
 
     def hangup
-      Idev._handle_mim_error{ C.mobile_image_mounter_hangup(self) }
+      err = C.mobile_image_mounter_hangup(self)
+      raise ImageMounterError, "ImageMounter error: #{err}" if err != :SUCCESS
+
       return true
     end
   end

@@ -7,13 +7,6 @@ module Idev
   class MobileBackupError < IdeviceLibError
   end
 
-  def self._handle_mb_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise MobileBackupError, "Mobile backup error: #{err}"
-    end
-  end
-
   # Used to backup and restore of all device data. (Pre iOS 4)
   class MobileBackupClient < C::ManagedOpaquePointer
     include LibHelpers
@@ -28,7 +21,9 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobilebackup", opts) do |idevice, ldsvc, p_mb|
-        Idev._handle_mb_error{ C.mobilebackup_client_new(idevice, ldsvc, p_mb) }
+        err = C.mobilebackup_client_new(idevice, ldsvc, p_mb)
+        raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
         mb = p_mb.read_pointer
         raise MisAgentError, "mobilebackup_client_new returned a NULL client" if mb.null?
         return new(mb)
@@ -37,7 +32,9 @@ module Idev
 
     def receive
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_mb_error{ C.mobilebackup_receive(self, p_result) }
+        err = C.mobilebackup_receive(self, p_result)
+        raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise MobileBackupError, "mobilebackup_receive returned a NULL result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -45,7 +42,9 @@ module Idev
     end
 
     def send_request(plist_hash)
-      Idev._handle_mb_error{ C.mobilebackup_send(self, plist_hash.to_plist_t) }
+      err = C.mobilebackup_send(self, plist_hash.to_plist_t)
+      raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
@@ -56,12 +55,16 @@ module Idev
       base_path = manifest.delete(:base_path)
       raise ArgumentError, "The manifest must contain a :base_path key and value" if base_path.nil?
 
-      Idev._handle_mb_error{ C.mobilebackup_request_backup(self, manifest.to_plist_t, base_path, proto_version) }
+      err = C.mobilebackup_request_backup(self, manifest.to_plist_t, base_path, proto_version)
+      raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def send_backup_file_received
-      Idev._handle_mb_error{ C.mobilebackup_send_backup_file_received(self) }
+      err = C.mobilebackup_send_backup_file_received(self)
+      raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
@@ -71,13 +74,17 @@ module Idev
       proto_version = manifest.delete(:proto_version) || '1.6'
       restore_flags = manifest.delete(:restore_flags) || 0
 
-      Idev._handle_mb_error{ C.mobilebackup_request_restore(self, manifest.to_plist_t, restore_flags, proto_version) }
+      err = C.mobilebackup_request_restore(self, manifest.to_plist_t, restore_flags, proto_version)
+      raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def receive_restore_file_received
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_mb_error{ C.mobilebackup_receive_restore_file_received(self, p_result) }
+        err = C.mobilebackup_receive_restore_file_received(self, p_result)
+        raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise MobileBackupError, "mobilebackup_receive returned a NULL result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -86,7 +93,9 @@ module Idev
 
     def receive_restore_application_received
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_mb_error{ C.mobilebackup_receive_restore_application_received(self, p_result) }
+        err = C.mobilebackup_receive_restore_application_received(self, p_result)
+        raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise MobileBackupError, "mobilebackup_receive returned a NULL result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -94,12 +103,16 @@ module Idev
     end
 
     def send_restore_complete
-      Idev._handle_mb_error{ C.mobilebackup_send_restore_complete(self) }
+      err = C.mobilebackup_send_restore_complete(self)
+      raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def send_error(reason)
-      Idev._handle_mb_error{ C.mobilebackup_send_error(self, reason) }
+      err = C.mobilebackup_send_error(self, reason)
+      raise MobileBackupError, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
   end

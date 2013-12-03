@@ -6,13 +6,6 @@ module Idev
   class IdeviceLibError < StandardError
   end
 
-  def self._handle_idev_error(&block)
-    ret = block.call()
-    if ret != :SUCCESS
-      raise IdeviceLibError, "Library error: #{ret}"
-    end
-  end
-
   class Idevice < C::ManagedOpaquePointer
     def self.release(ptr)
       C.idevice_free(ptr) unless ptr.null?
@@ -24,7 +17,9 @@ module Idev
       @udid = opts[:udid]
 
       FFI::MemoryPointer.new(:pointer) do |tmpptr|
-        ::Idev._handle_idev_error { C.idevice_new(tmpptr, @udid) }
+        err = C.idevice_new(tmpptr, @udid)
+        raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
+
         idevice_t = tmpptr.read_pointer
         if idevice_t.null?
           raise IdeviceLibError, "idevice_new created a null pointer"
@@ -39,7 +34,8 @@ module Idev
 
       @udid = nil
       FFI::MemoryPointer.new(:pointer) do |udid_ptr|
-        ::Idev._handle_idev_error{ C.idevice_get_udid(self, udid_ptr) }
+        err = C.idevice_get_udid(self, udid_ptr)
+        raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
         unless udid_ptr.read_pointer.null?
           @udid = udid_ptr.read_pointer.read_string
           C.free(udid_ptr.read_pointer)
@@ -51,7 +47,8 @@ module Idev
     def handle
       @handle = nil
       FFI::MemoryPointer.new(:uint32) do |tmpptr|
-        ::Idev._handle_idev_error{ C.idevice_get_handle(self, tmpptr) }
+        err = C.idevice_get_handle(self, tmpptr)
+        raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
         return tmpptr.read_uint32
       end
     end
@@ -68,7 +65,8 @@ module Idev
 
     def self.connect(idevice, port)
       FFI::MemoryPointer.new(:pointer) do |tmpptr|
-        Idev._handle_idev_error{ C.idevice_connect(idevice, port, tmpptr) }
+        err = C.idevice_connect(idevice, port, tmpptr)
+        raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
         idev_connection = tmpptr.read_pointer
         if idev_connection.null?
           raise IdeviceLibError, "idevice_connect returned a null idevice_connection_t"
@@ -79,7 +77,8 @@ module Idev
     end
 
     def disconnect
-      ::Idev._handle_idev_error{ C.idevice_disconnect(self) }
+      err = C.idevice_disconnect(self)
+      raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
       @_disconnected = true
       nil
     end
@@ -96,7 +95,8 @@ module Idev
       FFI::MemoryPointer.from_bytes(data) do |data_ptr|
         FFI::MemoryPointer.new(:uint32) do |sent_bytes|
           begin
-            ::Idev._handle_idev_error { C.idevice_connection_send(self, data_ptr, data_ptr.size, sent_bytes) }
+            err = C.idevice_connection_send(self, data_ptr, data_ptr.size, sent_bytes)
+            raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
             sent = sent_bytes.read_uint32
             break if sent == 0
             data_ptr += sent
@@ -125,9 +125,8 @@ module Idev
             end
           end
 
-          if ierr != :UNKNOWN_ERROR # seems to indicate end of data/connection
-            Idev._handle_idev_error{ ierr }
-          end
+          # UNKNOWN_ERROR seems to indicate end of data/connection
+          raise IdeviceLibError, "Idevice error: #{ierr}" if ierr != :UNKNOWN_ERROR
         end
       end
 
@@ -142,7 +141,8 @@ module Idev
       FFI::MemoryPointer.new(maxlen) do |data_ptr|
         FFI::MemoryPointer.new(:uint32) do |recv_bytes|
           # one-shot, read up to max-len and we're done
-          Idev._handle_idev_error { C.idevice_connection_receive_timeout(self, data_ptr, data_ptr.size, recv_bytes, timeout) }
+          err = C.idevice_connection_receive_timeout(self, data_ptr, data_ptr.size, recv_bytes, timeout)
+          raise IdeviceLibError, "Idevice error: #{err}" if err != :SUCCESS
           recvdata << data_ptr.read_bytes(recv_bytes.read_uint32)
         end
       end

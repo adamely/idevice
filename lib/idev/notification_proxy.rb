@@ -9,13 +9,6 @@ module Idev
   # Aliased short name for NotificationProxyError
   NPError = NotificationProxyError
 
-  def self._handle_np_error(&block)
-    err=block.call
-    if err != :SUCCESS
-      raise NotificationProxyError, "Notification Proxy Error: #{err}"
-    end
-  end
-
   # Notifications that can be received from the device
   module NPRecvNotifications
     SYNC_CANCEL_REQUEST       = "com.apple.itunes-client.syncCancelRequest"
@@ -60,7 +53,9 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobile.notification_proxy", opts) do |idevice, ldsvc, p_np|
-        Idev._handle_np_error{ C.np_client_new(idevice, ldsvc, p_np) }
+        err = C.np_client_new(idevice, ldsvc, p_np)
+        raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+
         np = p_np.read_pointer
         raise NPError, "np_client_new returned a NULL client" if np.null?
         return new(np)
@@ -68,13 +63,17 @@ module Idev
     end
 
     def post_notification(notification)
-      Idev._handle_np_error{ C.np_post_notification(self, notification) }
+      err = C.np_post_notification(self, notification)
+      raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def observe_notification
       FFI::MemoryPointer.new(:pointer) do |p_notification|
-        Idev._handle_np_error{ C.np_observe_notification(self, p_notification) }
+        err = C.np_observe_notification(self, p_notification)
+        raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+
         notification = p_notification.read_pointer
         unless notification.null?
           ret = notification.read_string
@@ -86,13 +85,17 @@ module Idev
 
     def observe_notifications
       FFI::MemoryPointer.new(:pointer) do |p_notifications|
-        Idev._handle_np_error{ C.np_observe_notifications(self, p_notifications) }
+        err = C.np_observe_notifications(self, p_notifications)
+        raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+
         return _unbound_list_to_array(p_notifications)
       end
     end
 
     def set_notify_callback(&block)
-      Idev._handle_np_error{ C.np_set_notify_callback(self, _cb(&block), nil) }
+      err = C.np_set_notify_callback(self, _cb(&block), nil)
+      raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+
       @notify_callback = block
       return true
     end

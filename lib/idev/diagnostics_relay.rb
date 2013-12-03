@@ -7,13 +7,6 @@ module Idev
   class DiagnosticsRelayError < IdeviceLibError
   end
 
-  def self._handle_drc_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise DiagnosticsRelayError, "Diagnostics Relay Error: #{err}"
-    end
-  end
-
   class DiagnosticsRelayClient < C::ManagedOpaquePointer
     include LibHelpers
 
@@ -51,7 +44,8 @@ module Idev
       end
 
       FFI::MemoryPointer.new(:pointer) do |p_drc|
-        Idev._handle_drc_error{ C.diagnostics_relay_client_new(idevice, ldsvc, p_drc) }
+        err = C.diagnostics_relay_client_new(idevice, ldsvc, p_drc)
+        raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
         drc = p_drc.read_pointer
         raise DiagnosticsRelayError, "diagnostics_relay_client_new returned a NULL diagnostics_relay_client_t pointer" if drc.null?
         return new(drc)
@@ -60,7 +54,9 @@ module Idev
 
     def diagnostics(type="All")
       FFI::MemoryPointer.new(:pointer) do |p_diags|
-        Idev._handle_drc_error{ C.diagnostics_relay_request_diagnostics(self, type, p_diags) }
+        err = C.diagnostics_relay_request_diagnostics(self, type, p_diags)
+        raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
+
         diags = p_diags.read_pointer
         raise DiagnosticsRelayError, "diagnostics_relay_request_diagnostics returned null diagnostics" if diags.null?
         return Plist_t.new(diags).to_ruby
@@ -69,7 +65,8 @@ module Idev
 
     def mobilegestalt(*keys)
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_drc_error{ C.diagnostics_relay_query_mobilegestalt(self, Plist_t.from_ruby(keys), p_result) }
+        err = C.diagnostics_relay_query_mobilegestalt(self, Plist_t.from_ruby(keys), p_result)
+        raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
         result = p_result.read_pointer
         raise DiagnosticsRelayError, "diagnostics_relay_query_mobilegestalt returned a null result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -78,7 +75,8 @@ module Idev
 
     def ioregistry_entry(name, klass)
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_drc_error{ C.diagnostics_relay_query_ioregistry_entry(self, name, klass, p_result) }
+        err = C.diagnostics_relay_query_ioregistry_entry(self, name, klass, p_result)
+        raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
         result = p_result.read_pointer
         raise DiagnosticsRelayError, "diagnostics_relay_query_ioregistry_entry returned a null result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -87,7 +85,8 @@ module Idev
 
     def ioregistry_plane(plane)
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_drc_error{ C.diagnostics_relay_query_ioregistry_plane(self, plane, p_result) }
+        err = C.diagnostics_relay_query_ioregistry_plane(self, plane, p_result)
+        raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
         result = p_result.read_pointer
         raise DiagnosticsRelayError, "diagnostics_relay_query_ioregistry_plane returned a null result" if result.null?
         return Plist_t.new(result).to_ruby
@@ -95,22 +94,26 @@ module Idev
     end
 
     def goodbye
-      Idev._handle_drc_error{ C.diagnostics_relay_goodbye(self) }
+      err = C.diagnostics_relay_goodbye(self)
+      raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
       return true
     end
 
     def sleep
-      Idev._handle_drc_error{ C.diagnostics_relay_sleep(self) }
+      err = C.diagnostics_relay_sleep(self)
+      raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
       return true
     end
 
     def restart(flags=0)
-      Idev._handle_drc_error{ C.diagnostics_relay_restart(self, flags) }
+      err = C.diagnostics_relay_restart(self, flags)
+      raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
       return true
     end
 
     def shutdown(flags=0)
-      Idev._handle_drc_error{ C.diagnostics_relay_shutdown(self, flags) }
+      err = C.diagnostics_relay_shutdown(self, flags)
+      raise DiagnosticsRelayError, "Diagnostics Relay error: #{err}" if err != :SUCCESS
       return true
     end
   end

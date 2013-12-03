@@ -7,19 +7,41 @@ module Idev
   class HeartbeatError < IdeviceLibError
   end
 
-  def self._handle_heartbeat_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise HeartbeatError, "Heartbeat error: #{err}"
-    end
-  end
-
   class HeartbeatClient < C::ManagedOpaquePointer
+    include LibHelpers
+
     def self.release(ptr)
       C.heartbeat_client_free(ptr) unless ptr.null?
     end
 
-    # XXX TODO...
+    def self.attach(opts={})
+      _attach_helper("com.apple.mobile.heartbeat", opts) do |idevice, ldsvc, p_hb|
+        err=C.heartbeat_client_new(idevice, ldsvc, p_hb)
+        raise HeartbeatError, "Heartbeat error: #{err}" if err != :SUCCESS
+        hb = p_hb.read_pointer
+        raise HeartbeatError, "hearbeat_client_new returned a NULL client" if hb.null?
+        return new(hb)
+      end
+    end
+
+    def send_plist(obj)
+      err = C.heartbeat_send(self, obj.to_plist_t)
+      raise HeartbeatError, "Heartbeat error: #{err}" if err != :SUCCESS
+      return true
+    end
+
+    def receive_plist(timeout=nil)
+      timeout ||= 1
+
+      FFI::MemoryPointer.new(:pointer) do |p_plist|
+        err = C.heartbeat_receive_with_timeout(self, p_plist, timeout)
+        raise HeartbeatError, "Heartbeat error: #{err}" if err != :SUCCESS
+        plist = p_plist.read_pointer
+        raise HeartbeatError, "hearbeat_receive returned a NULL plist" if plist.null?
+        return Plist.new(plist).to_ruby
+      end
+    end
+
   end
 
   module C
@@ -52,7 +74,6 @@ module Idev
 
     #heartbeat_error_t heartbeat_receive_with_timeout(heartbeat_client_t client, plist_t * plist, uint32_t timeout_ms);
     attach_function :heartbeat_receive_with_timeout, [HeartbeatClient, :pointer, :uint32], :heartbeat_error_t
-
 
   end
 end

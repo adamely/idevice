@@ -7,13 +7,6 @@ module Idev
   class RestoreErrror < IdeviceLibError
   end
 
-  def self._handle_restore_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise RestoreErrror, "Restore Error: #{err}"
-    end
-  end
-
   # Used to initiate the device restore process or reboot a device.
   class RestoreClient < C::ManagedOpaquePointer
     def self.release(ptr)
@@ -25,7 +18,9 @@ module Idev
       label = opts[:label] || "ruby-idev"
 
       FFI::MemoryPointer.new(:pointer) do |p_rc|
-        Idev._handle_restore_error{ C.restored_client_new(idevice, p_rc, label) }
+        err = C.restored_client_new(idevice, p_rc, label)
+        raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
         rc = p_rc.read_pointer
         raise NPError, "restore_client_new returned a NULL client" if rc.null?
         return new(rc)
@@ -33,14 +28,18 @@ module Idev
     end
 
     def goodbye
-      Idev._handle_restore_error{ C.restored_goodbye(self) }
+      err = C.restored_goodbye(self)
+      raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def query_type
       FFI::MemoryPointer.new(:pointer) do |p_type|
         FFI::MemoryPointer.new(:uint64) do |p_vers|
-          Idev._handle_restore_error{ C.restored_query_type(self, p_type, p_vers) }
+          err = C.restored_query_type(self, p_type, p_vers)
+          raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
           type = p_type.read_pointer
           raise RestoreErrror, "restored_query_type returned a null type" if type.null?
           result = {
@@ -55,7 +54,9 @@ module Idev
 
     def query_value(key)
       FFI::MemoryPointer.new(:pointer) do |p_value|
-        Idev._handle_restore_error{ C.restored_query_value(self, key, p_value) }
+        err = C.restored_query_value(self, key, p_value)
+        raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
         value = p_value.read_pointer
         if value
           return Plist_t.new(value).to_ruby
@@ -65,7 +66,9 @@ module Idev
 
     def get_value(key)
       FFI::MemoryPointer.new(:pointer) do |p_value|
-        Idev._handle_restore_error{ C.restored_get_value(self, key, p_value) }
+        err = C.restored_get_value(self, key, p_value)
+        raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
         value = p_value.read_pointer
         if value
           return Plist_t.new(value).to_ruby
@@ -74,12 +77,16 @@ module Idev
     end
 
     def send_plist(dict)
-      Idev._handle_restore_error{ C.restored_send(self, hash.to_plist_t) }
+      err = C.restored_send(self, hash.to_plist_t)
+      raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
     end
 
     def receive_plist
       FFI::MemoryPointer.new(:pointer) do |p_value|
-        Idev._handle_restore_error{ C.restored_receive(self, p_value) }
+        err = C.restored_receive(self, p_value)
+        raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
         value = p_value.read_pointer
         if value
           return Plist_t.new(value).to_ruby
@@ -88,12 +95,16 @@ module Idev
     end
 
     def start_restore(version, options={})
-      Idev._handle_restore_error{ C.restored_start_restore(self, options.to_plist_t, version) }
+      err = C.restored_start_restore(self, options.to_plist_t, version)
+      raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def reboot
-      Idev._handle_restore_error{ C.restored_reboot(self) }
+      err = C.restored_reboot(self)
+      raise RestoreErrror, "Restore Error: #{err}" if err != :SUCCESS
+
       return true
     end
 

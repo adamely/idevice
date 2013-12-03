@@ -3,13 +3,6 @@ module Idev
   class FileRelayError < IdeviceLibError
   end
 
-  def self._handle_fr_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise FileRelayError, "File Relay Error: #{err}"
-    end
-  end
-
   class FileRelayClient < C::ManagedOpaquePointer
     include LibHelpers
     def self.release(ptr)
@@ -18,7 +11,8 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobile.file_relay", opts) do |idevice,ldsvc,p_frc|
-        Idev._handle_fr_error{ C.file_relay_client_new(idevice, ldsvc, p_frc) }
+        err = C.file_relay_client_new(idevice, ldsvc, p_frc)
+        raise FileRelayError, "File Relay error: #{err}" if err != :SUCCESS
         frc = p_frc.read_pointer
         raise FileRelayError, "file_relay_client_new returned a NULL client" if frc.null?
         return new(frc)
@@ -28,7 +22,8 @@ module Idev
     def request_sources(*sources, &block)
       FFI::MemoryPointer.null_terminated_array_of_strings(sources) do |p_sources|
         FFI::MemoryPointer.new(:pointer) do |p_conn|
-          Idev._handle_fr_error{ C.file_relay_request_sources(self, p_sources, p_conn) }
+          err = C.file_relay_request_sources(self, p_sources, p_conn)
+          raise FileRelayError, "File Relay error: #{err}" if err != :SUCCESS
           conn = p_conn.read_pointer
           raise FileRelayError, "file_relay_request_sources returned a NULL connection" if conn.null?
           iconn = IdeviceConnection.new(conn)

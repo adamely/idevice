@@ -6,13 +6,6 @@ module Idev
   class LockdownError < IdeviceLibError
   end
 
-  def self._handle_lockdown_error
-    err = yield
-    if err != :SUCCESS
-      raise LockdownError, "Lockdownd error: #{err}"
-    end
-  end
-
   # Used to manage device preferences, start services, pairing and activation on the device.
   class LockdownClient < C::ManagedOpaquePointer
     def self.release(ptr)
@@ -25,13 +18,14 @@ module Idev
       label = opts[:label] || "ruby-idev"
 
       FFI::MemoryPointer.new(:pointer) do |p_lockdown_client|
-        Idev::_handle_lockdown_error do
+        err =
           if opts[:nohandshake]
             C.lockdownd_client_new(idevice, p_lockdown_client, label)
           else
             C.lockdownd_client_new_with_handshake(idevice, p_lockdown_client, label)
           end
-        end
+
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
 
         lockdown_client = p_lockdown_client.read_pointer
         if lockdown_client.null?
@@ -45,7 +39,9 @@ module Idev
     def device_udid
       res = nil
       FFI::MemoryPointer.new(:pointer) do |p_udid|
-        Idev::_handle_lockdown_error{ C.lockdownd_get_device_udid(self, p_udid) }
+        err = C.lockdownd_get_device_udid(self, p_udid)
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
         udid = p_udid.read_pointer
         unless udid.null?
           res = udid.read_string
@@ -58,7 +54,9 @@ module Idev
     def device_name
       res = nil
       FFI::MemoryPointer.new(:pointer) do |p_name|
-        Idev::_handle_lockdown_error{ C.lockdownd_get_device_name(self, p_name) }
+        err = C.lockdownd_get_device_name(self, p_name)
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
         name = p_name.read_pointer
         unless name.null?
           res = name.read_string
@@ -72,12 +70,15 @@ module Idev
       res = nil
       FFI::MemoryPointer.new(:pointer) do |p_sync_classes|
         FFI::MemoryPointer.new(:int) do |p_count|
-          Idev::_handle_lockdown_error{ C.lockdownd_get_sync_data_classes(self, p_sync_classes, p_count) }
+          err = C.lockdownd_get_sync_data_classes(self, p_sync_classes, p_count)
+          raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
           sync_classes = p_sync_classes.read_pointer
           count = p_count.read_int
           unless sync_classes.null?
             res = sync_classes.read_array_of_pointer(count).map{|p| p.read_string }
-            Idev::_handle_lockdown_error{ C.lockdownd_data_classes_free(sync_classes) }
+            err = C.lockdownd_data_classes_free(sync_classes)
+            raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
           end
         end
       end
@@ -87,7 +88,9 @@ module Idev
     def query_type
       res = nil
       FFI::MemoryPointer.new(:pointer) do |p_type|
-        Idev::_handle_lockdown_error{ C.lockdownd_query_type(self, p_type) }
+        err = C.lockdownd_query_type(self, p_type)
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
         type = p_type.read_pointer
         res = type.read_string
         C.free(type)
@@ -98,7 +101,9 @@ module Idev
     def get_value(domain, key)
       res = nil
       FFI::MemoryPointer.new(:pointer) do |p_val|
-        Idev::_handle_lockdown_error{ C.lockdownd_get_value(self, domain, key, p_val) }
+        err = C.lockdownd_get_value(self, domain, key, p_val)
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
         pl = Plist_t.new(p_val.read_pointer)
         unless pl.null?
           res = pl.to_ruby
@@ -120,7 +125,9 @@ module Idev
     def start_service(identifier)
       ret = nil
       FFI::MemoryPointer.new(:pointer) do |p_ldsvc|
-        Idev::_handle_lockdown_error{ C.lockdownd_start_service(self, identifier, p_ldsvc) }
+        err = C.lockdownd_start_service(self, identifier, p_ldsvc)
+        raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
+
         ldsvc = p_ldsvc.read_pointer
         unless ldsvc.null?
           ret = LockdownServiceDescriptor.new(ldsvc)

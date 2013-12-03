@@ -7,13 +7,6 @@ module Idev
   class MobileBackup2Error < IdeviceLibError
   end
 
-  def self._handle_mb2_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise MobileBackup2Error, "Mobile backup error: #{err}"
-    end
-  end
-
   # Used to backup and restore of all device data (mobilebackup2, iOS4+ only)
   class MobileBackup2Client < C::ManagedOpaquePointer
     include LibHelpers
@@ -24,7 +17,9 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobilebackup2", opts) do |idevice, ldsvc, p_mb2|
-        Idev._handle_mb2_error{ C.mobilebackup2_client_new(idevice, ldsvc, p_mb2) }
+        err = C.mobilebackup2_client_new(idevice, ldsvc, p_mb2)
+        raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
         mb2 = p_mb2.read_pointer
         raise MobileBackup2Error, "mobilebackup2_client_new returned a NULL client" if mb2.null?
         return new(mb2)
@@ -36,14 +31,18 @@ module Idev
         raise ArgumentError, "Both message and options hash may not be nil"
       end
       opts = opts.to_plist_t unless opts.nil?
-      Idev._handle_mb2_error{ C.mobilebackup2_send_message(self, message, opts) }
+      err = C.mobilebackup2_send_message(self, message, opts)
+      raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def receive_message
       FFI::MemoryPointer.new(:pointer) do |p_msg|
         FFI::MemoryPointer.new(:pointer) do |p_dlmessage|
-          Idev._handle_mb2_error{ C.mobilebackup2_receive_message(self, p_msg, p_dlmessage) }
+          err = C.mobilebackup2_receive_message(self, p_msg, p_dlmessage)
+          raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
           dlmessage = p_dlmessage.read_pointer
           msg = p_msg.read_pointer
           begin
@@ -63,7 +62,9 @@ module Idev
     def send_raw(data)
       FFI::MemoryPointer.from_bytes(data) do |p_data|
         FFI::MemoryPointer.new(:uint32) do |p_sentbytes|
-          Idev._handle_mb2_error{ C.mobilebackup2_send_raw(self, p_data, p_data.size, p_sentbytes) }
+          err = C.mobilebackup2_send_raw(self, p_data, p_data.size, p_sentbytes)
+          raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
           return p_sentbytes.read_uint32
         end
       end
@@ -72,7 +73,9 @@ module Idev
     def receive_raw(len)
       FFI::MemoryPointer.new(len) do |p_data|
         FFI::MemoryPointer.new(:uint32) do |p_rcvdbytes|
-          Idev._handle_mb2_error{ C.mobilebackup2_receive_raw(self, p_data, p_data.size, p_rcvdbytes) }
+          err = C.mobilebackup2_receive_raw(self, p_data, p_data.size, p_rcvdbytes)
+          raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
           return p_data.read_bytes(p_rcvdbytes.read_uint32)
         end
       end
@@ -83,20 +86,26 @@ module Idev
       FFI::MemoryPointer.new(FFI::TypeDefs[:double].size * local_versions.count) do |p_local_versions|
         p_local_versions.write_array_of_double(local_versions)
         FFI::MemoryPointer.new(:pointer) do |p_remote_version|
-          Idev._handle_mb2_error{ C.mobilebackup2_version_exchange(self, p_local_versions, local_versions.count, p_remote_version) }
+          err = C.mobilebackup2_version_exchange(self, p_local_versions, local_versions.count, p_remote_version)
+          raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
           return p_remote_version.read_double
         end
       end
     end
 
     def send_request(request, target_identifier, source_identifier, opts={})
-      Idev._handle_mb2_error{ C.mobilebackup2_send_request(self, request, target_id, source_id, opts.to_plist_t) }
+      err = C.mobilebackup2_send_request(self, request, target_id, source_id, opts.to_plist_t)
+      raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def send_status_response(status_code, status_message=nil, opts=nil)
       opts = opts.to_plist_t if opts
-      Idev._handle_mb2_error{ C.mobilebackup2_send_status_response(self, status_code, status_message, opts) }
+      err = C.mobilebackup2_send_status_response(self, status_code, status_message, opts)
+      raise MobileBackup2Error, "Mobile backup error: #{err}" if err != :SUCCESS
+
       return true
     end
   end

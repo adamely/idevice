@@ -7,13 +7,6 @@ module Idev
   class HouseArrestError < IdeviceLibError
   end
 
-  def self._handle_ha_error(&block)
-    err = block.call
-    if err != :SUCCESS
-      raise HouseArrestError, "house_arrest error: #{err}"
-    end
-  end
-
   class HouseArrestClient < C::ManagedOpaquePointer
     include LibHelpers
 
@@ -23,7 +16,8 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobile.house_arrest", opts) do |idevice, ldsvc, p_ha|
-        Idev._handle_ha_error{ C.house_arrest_client_new(idevice, ldsvc, p_ha) }
+        err = C.house_arrest_client_new(idevice, ldsvc, p_ha)
+        raise HouseArrestError, "house_arrest error: #{err}" if err != :SUCCESS
         ha = p_ha.read_pointer
         raise HouseArrestError, "house_arrest_client_new returned a NULL house_arrest_client_t pointer" if ha.null?
         return new(ha)
@@ -31,18 +25,21 @@ module Idev
     end
 
     def send_request(dict)
-      Idev._handle_ha_error{ C.house_arrest_send_request(self, dict.to_plist_t) }
+      err = C.house_arrest_send_request(self, dict.to_plist_t)
+      raise HouseArrestError, "house_arrest error: #{err}" if err != :SUCCESS
       return true
     end
 
     def send_command(command, appid)
-      Idev._handle_ha_error{ C.house_arrest_send_command(self, command, appid) }
+      err = C.house_arrest_send_command(self, command, appid)
+      raise HouseArrestError, "house_arrest error: #{err}" if err != :SUCCESS
       return true
     end
 
     def get_result
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_ha_error{ C.house_arrest_get_result(self, p_result) }
+        err = C.house_arrest_get_result(self, p_result)
+        raise HouseArrestError, "house_arrest error: #{err}" if err != :SUCCESS
         result = p_result.read_pointer
         raise HouseArrestError, "house_arrest_get_result returned a null plist_t" if result.null?
         return Plist_t.new(result).to_ruby
@@ -67,10 +64,12 @@ module Idev
 
     def afc_client
       FFI::MemoryPointer.new(:pointer) do |p_afc|
-        Idev._handle_afc_error{ C.afc_client_new_from_house_arrest_client(self, p_afc) }
+        err = C.afc_client_new_from_house_arrest_client(self, p_afc)
+        raise AFCError, "AFC Error: #{err}" if err != :SUCCESS
         afc = p_afc.read_pointer
         raise AFCError, "afc_client_new_from_house_arrest_client returned a NULL afc_client_t pointer" if afc.null?
         cli =  AFCClient.new(afc)
+
         # save a reference to ourselves in the afc client to avoid premature garbage collection...
         cli.instance_variable_set(:@house_arrest, self)
         return cli

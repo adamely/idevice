@@ -7,13 +7,6 @@ module Idev
   class InstProxyError < IdeviceLibError
   end
 
-  def self._handle_instproxy_error(&block)
-    err=block.call
-    if err != :SUCCESS
-      raise InstProxyError, "instproxy_client error: #{err}"
-    end
-  end
-
   class InstProxyClient < C::ManagedOpaquePointer
     include LibHelpers
 
@@ -23,9 +16,12 @@ module Idev
 
     def self.attach(opts={})
       _attach_helper("com.apple.mobile.installation_proxy", opts) do |idevice, ldsvc, p_ip|
-        Idev._handle_instproxy_error{ C.instproxy_client_new(idevice, ldsvc, p_ip) }
+        err = C.instproxy_client_new(idevice, ldsvc, p_ip)
+        raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
         ip = p_ip.read_pointer
         raise InstProxyError, "instproxy_client_new returned a NULL house_arrest_client_t pointer" if ip.null?
+
         return new(ip)
       end
     end
@@ -33,56 +29,74 @@ module Idev
     def browse(opts={})
       opts ||= {}
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_instproxy_error{ C.instproxy_browse(self, opts.to_plist_t, p_result) }
+        err = C.instproxy_browse(self, opts.to_plist_t, p_result)
+        raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise InstProxyError, "instproxy_browse returned a null plist_t" if result.null?
+
         return Plist_t.new(result).to_ruby
       end
     end
 
     def install(pkg_path, opts={}, &block)
       opts ||= {}
-      Idev._handle_instproxy_error{ C.instproxy_install(self, pkg_path, opts.to_plist_t, _cb(&block), nil) }
+      err = C.instproxy_install(self, pkg_path, opts.to_plist_t, _cb(&block), nil)
+      raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def upgrade(pkg_path, opts={}, &block)
       opts ||= {}
-      Idev._handle_instproxy_error{ C.instproxy_upgrade(self, pkg_path, opts.to_plist_t, _cb(&block), nil) }
+      err = C.instproxy_upgrade(self, pkg_path, opts.to_plist_t, _cb(&block), nil)
+      raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def uninstall(appid, opts={}, &block)
       opts ||= {}
-      Idev._handle_instproxy_error{ C.instproxy_uninstall(self, appid, opts.to_plist_t, _cb(&block), nil) }
+      err = C.instproxy_uninstall(self, appid, opts.to_plist_t, _cb(&block), nil)
+      raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def lookup_archives(opts={})
       opts ||= {}
       FFI::MemoryPointer.new(:pointer) do |p_result|
-        Idev._handle_instproxy_error{ C.instproxy_lookup_archives(self, opts.to_plist_t, p_result) }
+        err = C.instproxy_lookup_archives(self, opts.to_plist_t, p_result)
+        raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
         result = p_result.read_pointer
         raise InstProxyError, "instproxy_lookup_archives returned a null plist_t" if result.null?
+
         return Plist_t.new(result).to_ruby
       end
     end
 
     def archive(appid, opts={}, &block)
       opts ||= {}
-      Idev._handle_instproxy_error{ C.instproxy_archive(self, appid, opts.to_plist_t, _cb(&block), nil) }
+      err = C.instproxy_archive(self, appid, opts.to_plist_t, _cb(&block), nil)
+      raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def restore(appid, opts={}, &block)
       opts ||= {}
-      Idev._handle_instproxy_error{ C.instproxy_restore(self, appid, opts.to_plist_t, _cb(&block), nil) }
+      err = C.instproxy_restore(self, appid, opts.to_plist_t, _cb(&block), nil)
+      raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
       return true
     end
 
     def remove_archive(appid, opts={}, &block)
       opts ||= {}
-      Idev._handle_instproxy_error{ C.instproxy_remove_archive(self, appid, opts.to_plist_t, _cb(&block), nil) }
+      err = C.instproxy_remove_archive(self, appid, opts.to_plist_t, _cb(&block), nil)
+      raise InstProxyError, "instproxy_client error: #{err}" if err != :SUCCESS
+
       return true
     end
 

@@ -9,13 +9,6 @@ module Idev
 
   AFC_DEFAULT_CHUNKSIZE = 8192
 
-  def self._handle_afc_error(&block)
-    ret = block.call()
-    if ret != :SUCCESS
-      raise AFCError, "AFC error: #{ret}"
-    end
-  end
-
   class AFCClient < C::ManagedOpaquePointer
     include LibHelpers
 
@@ -38,7 +31,9 @@ module Idev
           end
 
         _attach_helper(identifier, opts) do |idevice, ldsvc, p_afc|
-          Idev._handle_afc_error{ C.afc_client_new(idevice, ldsvc, p_afc) }
+          err = C.afc_client_new(idevice, ldsvc, p_afc)
+          raise AFCError, "AFC error: #{err}" if err != :SUCCESS
+
           afc = p_afc.read_pointer
           raise AFCError, "afc_client_new returned a NULL afc_client_t pointer" if afc.null?
           return new(afc)
@@ -50,7 +45,9 @@ module Idev
       ret = nil
       if key
         FFI::MemoryPointer.new(:pointer) do |p_value|
-          Idev._handle_afc_error{ C.afc_get_device_info_key(self, key, p_value) }
+          err = C.afc_get_device_info_key(self, key, p_value)
+          raise AFCError, "AFC error: #{err}" if err != :SUCCESS
+
           value = p_value.read_pointer
           unless value.null?
             ret = value.read_string
@@ -59,7 +56,8 @@ module Idev
         end
       else
         FFI::MemoryPointer.new(:pointer) do |p_infos|
-          Idev._handle_afc_error{ C.afc_get_device_info(self, p_infos) }
+          err = C.afc_get_device_info(self, p_infos)
+          raise AFCError, "AFC error: #{err}" if err != :SUCCESS
           ret = _infolist_to_hash(p_infos)
         end
       end
@@ -69,7 +67,8 @@ module Idev
     def read_directory(path='.')
       ret = nil
       FFI::MemoryPointer.new(:pointer) do |p_dirlist|
-        Idev._handle_afc_error{ C.afc_read_directory(self, path, p_dirlist) }
+        err = C.afc_read_directory(self, path, p_dirlist)
+        raise AFCError, "AFC error: #{err}" if err != :SUCCESS
         ret = _unbound_list_to_array(p_dirlist)
       end
 
@@ -81,7 +80,8 @@ module Idev
     def file_info(path)
       ret = nil
       FFI::MemoryPointer.new(:pointer) do |p_fileinfo|
-        Idev._handle_afc_error{ C.afc_get_file_info(self, path, p_fileinfo) }
+        err = C.afc_get_file_info(self, path, p_fileinfo)
+        raise AFCError, "AFC error: #{err}" if err != :SUCCESS
         ret = _infolist_to_hash(p_fileinfo)
 
         # convert string values to something more useful
@@ -106,37 +106,43 @@ module Idev
     end
 
     def make_directory(path)
-      Idev._handle_afc_error{ C.afc_make_directory(self, path) }
+      err = C.afc_make_directory(self, path)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
     alias :mkdir :make_directory
 
     def symlink(from, to)
-      Idev._handle_afc_error{ C.afc_make_link(self, :SYMLINK, from, to) }
+      err = C.afc_make_link(self, :SYMLINK, from, to)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
     alias :ln_s :symlink
 
     def hardlink(from, to)
-      Idev._handle_afc_error{ C.afc_make_link(self, :HARDLINK, from, to) }
+      err = C.afc_make_link(self, :HARDLINK, from, to)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
     alias :ln :hardlink
 
     def rename_path(from, to)
-      Idev._handle_afc_error{ C.afc_rename_path(self, from, to) }
+      err = C.afc_rename_path(self, from, to)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
     alias :mv :rename_path
 
     def remove_path(path)
-      Idev._handle_afc_error{ C.afc_remove_path(self, path) }
+      err = C.afc_remove_path(self, path)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
     alias :rm :remove_path
 
     def truncate(path, size)
-      Idev._handle_afc_error{ C.afc_truncate(self, path, size) }
+      err = C.afc_truncate(self, path, size)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
 
@@ -199,7 +205,8 @@ module Idev
              else
                time
              end
-      Idev._handle_afc_error{ C.afc_set_file_time(self, path, tval) }
+      err = C.afc_set_file_time(self, path, tval)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
 
@@ -244,7 +251,8 @@ module Idev
 
       afcfile=nil
       FFI::MemoryPointer.new(:uint64) do |p_handle|
-        Idev._handle_afc_error{ C.afc_file_open(afcclient, path, m, p_handle) }
+        err =C.afc_file_open(afcclient, path, m, p_handle)
+        raise AFCError, "AFC error: #{err}" if err != :SUCCESS
         afcfile = new(afcclient, p_handle.read_uint64)
       end
 
@@ -262,7 +270,8 @@ module Idev
     end
 
     def close
-      Idev._handle_afc_error{ C.afc_file_close(@afcclient, @handle) }
+      err = C.afc_file_close(@afcclient, @handle)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       @closed = true
     end
 
@@ -275,17 +284,20 @@ module Idev
     end
 
     def lock(op)
-      Idev._handle_afc_error{ C.afc_file_lock(@afcclient, @handle, op) }
+      err = C.afc_file_lock(@afcclient, @handle, op)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
       return true
     end
 
     def seek(offset, whence)
-      Idev._handle_afc_error{ C.afc_file_seek(@afcclient, @handle, offset, whence) }
+      err = C.afc_file_seek(@afcclient, @handle, offset, whence)
+      raise AFCError, "AFC error: #{err}" if err != :SUCCESS
     end
 
     def tell
       FFI::MemoryPointer.new(:pointer) do |p_pos|
-        Idev._handle_afc_error{ C.afc_file_tell(@afcclient, @handle, p_pos) }
+        err = C.afc_file_tell(@afcclient, @handle, p_pos)
+        raise AFCError, "AFC error: #{err}" if err != :SUCCESS
         return p_pos.read_uint16
       end
     end
@@ -315,7 +327,7 @@ module Idev
             end
             break if rlen == 0
           end
-          Idev._handle_afc_error{ err } unless [:SUCCESS,:END_OF_DATA].include?(err)
+          raise AFCError, "AFC error: #{err}" unless [:SUCCESS, :END_OF_DATA].include?(err)
         end
       end
 
@@ -336,7 +348,7 @@ module Idev
             len -= rlen
             break if len <= 0
           end
-          Idev._handle_afc_error{ err } unless [:SUCCESS, :END_OF_DATA].include?(err)
+          raise AFCError, "AFC error: #{err}" unless [:SUCCESS, :END_OF_DATA].include?(err)
         end
       end
 
@@ -348,7 +360,9 @@ module Idev
       FFI::MemoryPointer.from_bytes(data) do |p_data|
         FFI::MemoryPointer.new(:uint32) do |p_wlen|
           while bytes_written < p_data.size
-            Idev._handle_afc_error{ C.afc_file_write(@afcclient, @handle, p_data, p_data.size, p_wlen) }
+            err = C.afc_file_write(@afcclient, @handle, p_data, p_data.size, p_wlen)
+            raise AFCError, "AFC error: #{err}" if err != :SUCCESS
+
             wlen = p_wlen.read_uint32
             p_data += wlen
             bytes_written += wlen
