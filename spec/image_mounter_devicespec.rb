@@ -1,8 +1,8 @@
 require_relative 'spec_helper'
 
-describe Idev::ImageMounterClient do
+describe Idevice::ImageMounterClient do
   before :each do
-    @imgmounter = Idev::ImageMounterClient.attach(idevice:shared_idevice)
+    @imgmounter = Idevice::ImageMounterClient.attach(idevice:shared_idevice)
   end
 
   after :each do
@@ -10,7 +10,7 @@ describe Idev::ImageMounterClient do
   end
 
   it "should attach" do
-    @imgmounter.should be_a Idev::ImageMounterClient
+    @imgmounter.should be_a Idevice::ImageMounterClient
   end
 
   it "should look up whether the Developer image is mounted" do
@@ -37,7 +37,7 @@ describe Idev::ImageMounterClient do
 
   it "should hangup" do
     @imgmounter.hangup.should be_true
-    lambda{ @imgmounter.lookup_image }.should raise_error(Idev::ImageMounterError)
+    lambda{ @imgmounter.lookup_image }.should raise_error(Idevice::ImageMounterError)
   end
 
   it "should mount an image"

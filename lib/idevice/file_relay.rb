@@ -1,5 +1,5 @@
 
-module Idev
+module Idevice
   class FileRelayError < IdeviceLibError
   end
 

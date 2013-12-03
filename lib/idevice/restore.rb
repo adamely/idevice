@@ -1,9 +1,9 @@
-require 'idev/c'
-require 'idev/plist'
-require 'idev/idevice'
-require 'idev/lockdown'
+require 'idevice/c'
+require 'idevice/plist'
+require 'idevice/idevice'
+require 'idevice/lockdown'
 
-module Idev
+module Idevice
   class RestoreErrror < IdeviceLibError
   end
 
@@ -15,7 +15,7 @@ module Idev
 
     def self.attach(opts={})
       idevice = opts[:idevice] || Idevice.attach(opts)
-      label = opts[:label] || "ruby-idev"
+      label = opts[:label] || "ruby-idevice"
 
       FFI::MemoryPointer.new(:pointer) do |p_rc|
         err = C.restored_client_new(idevice, p_rc, label)

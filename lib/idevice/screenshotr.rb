@@ -1,8 +1,8 @@
-require 'idev/c'
-require 'idev/idevice'
-require 'idev/lockdown'
+require 'idevice/c'
+require 'idevice/idevice'
+require 'idevice/lockdown'
 
-module Idev
+module Idevice
 
   class ScreenShotrError < IdeviceLibError
   end

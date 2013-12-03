@@ -1,10 +1,10 @@
-require 'idev/c'
-require 'idev/plist'
-require 'idev/idevice'
-require 'idev/lockdown'
+require 'idevice/c'
+require 'idevice/plist'
+require 'idevice/idevice'
+require 'idevice/lockdown'
 
 
-module Idev
+module Idevice
   class ImageMounterError < IdeviceLibError
   end
 

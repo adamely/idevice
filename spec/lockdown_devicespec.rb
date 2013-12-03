@@ -1,21 +1,21 @@
 require_relative 'spec_helper'
 
-describe Idev::LockdownClient do
+describe Idevice::LockdownClient do
   it "should attach without arguments" do
-    client = Idev::LockdownClient.attach
-    client.should be_a Idev::LockdownClient
+    client = Idevice::LockdownClient.attach
+    client.should be_a Idevice::LockdownClient
     client.device_udid.should == client.get_value(nil, "UniqueDeviceID")
   end
 
   it "should attach with an instantiated idevice" do
-    client = Idev::LockdownClient.attach(idevice: Idev::Idevice.attach)
-    client.should be_a Idev::LockdownClient
+    client = Idevice::LockdownClient.attach(idevice: Idevice::Idevice.attach)
+    client.should be_a Idevice::LockdownClient
     client.device_udid.should == client.get_value(nil, "UniqueDeviceID")
   end
 
   context "an attached client" do
     before :each do
-      @lockdown = Idev::LockdownClient.attach(idevice: shared_idevice)
+      @lockdown = Idevice::LockdownClient.attach(idevice: shared_idevice)
     end
 
     after :each do
@@ -23,7 +23,7 @@ describe Idev::LockdownClient do
     end
 
     it "should attach" do
-      @lockdown.should be_a Idev::LockdownClient
+      @lockdown.should be_a Idevice::LockdownClient
     end
 
     it "should list sync data classes" do
@@ -79,7 +79,7 @@ describe Idev::LockdownClient do
     end
 
     it "should raise an error starting a nonexistent lockdown service" do
-      lambda{ @lockdown.start_service("nonexistent.service.garbage") }.should raise_error Idev::IdeviceLibError
+      lambda{ @lockdown.start_service("nonexistent.service.garbage") }.should raise_error Idevice::IdeviceLibError
     end
 
   end

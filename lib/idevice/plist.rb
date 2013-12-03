@@ -1,4 +1,4 @@
-require 'idev/c'
+require 'idevice/c'
 require 'plist'
 
 # extensions on the Plist rubygem module for
@@ -6,11 +6,11 @@ require 'plist'
 module Plist
 
   def self.xml_to_pointer(xml)
-    Idev::Plist_t.from_xml(xml)
+    Idevice::Plist_t.from_xml(xml)
   end
 
   def self.binary_to_pointer(data)
-    Idev::Plist_t.from_binary(data)
+    Idevice::Plist_t.from_binary(data)
   end
 
   def self.parse_binary(data)
@@ -42,7 +42,7 @@ class Hash
   include PlistToPointer
 end
 
-module Idev
+module Idevice
   class Plist_t < C::ManagedOpaquePointer
     def self.release(ptr)
       C::plist_free(ptr) unless ptr.null?

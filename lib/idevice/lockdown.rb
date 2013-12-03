@@ -1,8 +1,8 @@
-require 'idev/c'
-require 'idev/plist'
-require 'idev/idevice'
+require 'idevice/c'
+require 'idevice/plist'
+require 'idevice/idevice'
 
-module Idev
+module Idevice
   class LockdownError < IdeviceLibError
   end
 
@@ -15,7 +15,7 @@ module Idev
     def self.attach(opts={})
       idevice = opts[:idevice] || Idevice.attach(opts)
 
-      label = opts[:label] || "ruby-idev"
+      label = opts[:label] || "ruby-idevice"
 
       FFI::MemoryPointer.new(:pointer) do |p_lockdown_client|
         err =

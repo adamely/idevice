@@ -1,9 +1,9 @@
-require 'idev/c'
-require 'idev/idevice'
-require 'idev/lockdown'
-require 'idev/plist'
+require 'idevice/c'
+require 'idevice/idevice'
+require 'idevice/lockdown'
+require 'idevice/plist'
 
-module Idev
+module Idevice
   class InstProxyError < IdeviceLibError
   end
 

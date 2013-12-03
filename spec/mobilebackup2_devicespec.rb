@@ -1,15 +1,15 @@
 require_relative 'spec_helper'
 
-describe Idev::MobileBackup2Client do
+describe Idevice::MobileBackup2Client do
   before :each do
-    @mb2 = Idev::MobileBackup2Client.attach(idevice:shared_idevice)
+    @mb2 = Idevice::MobileBackup2Client.attach(idevice:shared_idevice)
   end
 
   after :each do
   end
 
   it "should attach" do
-    @mb2.should be_a Idev::MobileBackup2Client
+    @mb2.should be_a Idevice::MobileBackup2Client
   end
 
   it "should exchange versions" do
@@ -18,7 +18,7 @@ describe Idev::MobileBackup2Client do
   end
 
   it "should raise an exception attempting to negotiate an invalid version" do
-    lambda{ @mb2.version_exchange([999.99]) }.should raise_error Idev::MobileBackup2Error
+    lambda{ @mb2.version_exchange([999.99]) }.should raise_error Idevice::MobileBackup2Error
   end
 
   it "should send a message"

@@ -1,8 +1,8 @@
 require_relative 'spec_helper'
 
-describe Idev::RestoreClient do
+describe Idevice::RestoreClient do
   before :each do
-    @rc = Idev::RestoreClient.attach(idevice:shared_idevice)
+    @rc = Idevice::RestoreClient.attach(idevice:shared_idevice)
   end
 
   before :each do
@@ -10,7 +10,7 @@ describe Idev::RestoreClient do
   end
 
   it "should attach" do
-    @rc.should be_a Idev::RestoreClient
+    @rc.should be_a Idevice::RestoreClient
   end
 
   it "should set the client label" do

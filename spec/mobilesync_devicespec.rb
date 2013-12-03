@@ -1,15 +1,15 @@
 require_relative 'spec_helper'
 
-describe Idev::MobileSyncClient do
+describe Idevice::MobileSyncClient do
   before :each do
-    @sync = Idev::MobileSyncClient.attach(idevice:shared_idevice)
+    @sync = Idevice::MobileSyncClient.attach(idevice:shared_idevice)
   end
 
   after :each do
   end
 
   it "should attach" do
-    @sync.should be_a Idev::MobileSyncClient
+    @sync.should be_a Idevice::MobileSyncClient
   end
 
   it "should send a plist"

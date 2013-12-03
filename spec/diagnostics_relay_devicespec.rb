@@ -1,12 +1,12 @@
 require_relative 'spec_helper'
 
-describe Idev::DiagnosticsRelayClient do
+describe Idevice::DiagnosticsRelayClient do
   before :all do
     @idevice = shared_idevice
   end
 
   before :each do
-    @drc = Idev::DiagnosticsRelayClient.attach(idevice:@idevice)
+    @drc = Idevice::DiagnosticsRelayClient.attach(idevice:@idevice)
   end
 
   after :each do
@@ -14,7 +14,7 @@ describe Idev::DiagnosticsRelayClient do
   end
 
   it "should attach" do
-    @drc.should be_a Idev::DiagnosticsRelayClient
+    @drc.should be_a Idevice::DiagnosticsRelayClient
   end
 
   it "should request diagnostics" do
@@ -50,7 +50,7 @@ describe Idev::DiagnosticsRelayClient do
   end
 
   it "should raise an error for invalid diagnostic types " do
-    lambda{ @drc.diagnostics("SomeBogusType") }.should raise_error(Idev::DiagnosticsRelayError)
+    lambda{ @drc.diagnostics("SomeBogusType") }.should raise_error(Idevice::DiagnosticsRelayError)
   end
 
   it "should query mobilegestalt" do
@@ -84,7 +84,7 @@ describe Idev::DiagnosticsRelayClient do
 
   it "should say goodbye to disconnect from the service" do
     @drc.goodbye.should be_true
-    lambda{ @drc.diagnostics }.should raise_error(Idev::DiagnosticsRelayError)
+    lambda{ @drc.diagnostics }.should raise_error(Idevice::DiagnosticsRelayError)
   end
 
   it "should put a device to sleep" do

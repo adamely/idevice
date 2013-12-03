@@ -1,9 +1,9 @@
-require 'idev/c'
-require 'idev/idevice'
-require 'idev/lockdown'
-require 'idev/house_arrest'
+require 'idevice/c'
+require 'idevice/idevice'
+require 'idevice/lockdown'
+require 'idevice/house_arrest'
 
-module Idev
+module Idevice
   class AFCError < IdeviceLibError
   end
 

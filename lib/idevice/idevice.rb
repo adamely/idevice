@@ -1,8 +1,8 @@
 require 'ffi'
-require 'idev/c'
+require 'idevice/c'
 require 'stringio'
 
-module Idev
+module Idevice
   class IdeviceLibError < StandardError
   end
 

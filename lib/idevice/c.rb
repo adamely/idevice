@@ -35,7 +35,7 @@ module FFI
   end
 end
 
-module Idev
+module Idevice
   module LibHelpers
     def self.included(base)
       class << base

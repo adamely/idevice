@@ -1,10 +1,10 @@
-require 'idev/c'
-require 'idev/plist'
-require 'idev/idevice'
-require 'idev/lockdown'
+require 'idevice/c'
+require 'idevice/plist'
+require 'idevice/idevice'
+require 'idevice/lockdown'
 
-module Idev
-  class MisAgentError < Idev::IdeviceLibError
+module Idevice
+  class MisAgentError < IdeviceLibError
   end
 
   # Used to manage provisioning profiles on the device.

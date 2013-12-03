@@ -1,12 +1,12 @@
 require_relative 'spec_helper'
 
-describe Idev::HeartbeatClient do
+describe Idevice::HeartbeatClient do
   before :all do
-    @hb = Idev::HeartbeatClient.attach(idevice:shared_idevice)
+    @hb = Idevice::HeartbeatClient.attach(idevice:shared_idevice)
   end
 
   it "should attach" do
-    @hb.should be_a Idev::HeartbeatClient
+    @hb.should be_a Idevice::HeartbeatClient
   end
 
   it "should send and receive a heartbeat" do

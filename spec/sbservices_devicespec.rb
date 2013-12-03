@@ -1,12 +1,12 @@
 require_relative 'spec_helper'
 
-describe Idev::SBSClient do
+describe Idevice::SBSClient do
   before :each do
-    @sbs = Idev::SBSClient.attach(idevice:shared_idevice)
+    @sbs = Idevice::SBSClient.attach(idevice:shared_idevice)
   end
 
   it "should attach" do
-    @sbs.should be_a Idev::SBSClient
+    @sbs.should be_a Idevice::SBSClient
   end
 
 

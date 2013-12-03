@@ -33,5 +33,5 @@ end
 
 desc "pry console"
 task :console do
-  sh "pry -I lib -r ./lib/idev.rb"
+  sh "pry -I lib -r ./lib/idevice.rb"
 end

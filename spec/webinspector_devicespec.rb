@@ -1,12 +1,12 @@
 require_relative 'spec_helper'
 
-describe Idev::WebInspectorClient do
+describe Idevice::WebInspectorClient do
   before :each do
-    @wic = Idev::WebInspectorClient.attach(idevice:shared_idevice)
+    @wic = Idevice::WebInspectorClient.attach(idevice:shared_idevice)
   end
 
   it "should attach" do
-    @wic.should be_a Idev::WebInspectorClient
+    @wic.should be_a Idevice::WebInspectorClient
   end
 
   it "should send a plist"

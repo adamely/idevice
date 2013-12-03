@@ -1,14 +1,24 @@
 require_relative 'spec_helper'
 
-describe Idev::Idevice do
+describe Idevice do
+  it "should list attached devices" do
+    devlist = Idevice.device_list
+    devlist.count.should > 0
+    devlist.each do |dev|
+      dev.should =~ /^[a-f0-9]{40}$/i
+    end
+  end
+end
+
+describe Idevice::Idevice do
 
   context "with an attached device" do
     before :all do
-      @idevice = Idev::Idevice.attach()
+      @idevice = Idevice::Idevice.attach()
     end
 
     it "should attach" do
-      @idevice.should be_a Idev::Idevice
+      @idevice.should be_a Idevice::Idevice
     end
 
     it "should have a udid" do
@@ -29,7 +39,7 @@ describe Idev::Idevice do
       it "should connect to the lockdownd port" do
         begin
           connection = @idevice.connect(62078)
-          connection.should be_a Idev::IdeviceConnection
+          connection.should be_a Idevice::IdeviceConnection
           connection.should be_connected
           connection.should_not be_disconnected
         ensure
@@ -40,7 +50,7 @@ describe Idev::Idevice do
       it "should query lockdownd" do
         begin
           connection = @idevice.connect(62078)
-          connection.should be_a Idev::IdeviceConnection
+          connection.should be_a Idevice::IdeviceConnection
           connection.should be_connected
           connection.should_not be_disconnected
 

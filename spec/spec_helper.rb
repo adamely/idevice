@@ -8,7 +8,7 @@ require 'rspec'
 require 'pry'
 
 $LOAD_PATH << $SPECROOT.join("..", "lib").expand_path
-require 'idev'
+require 'idevice'
 
 RSpec.configure do |config|
   def sample_file(filename)
@@ -29,7 +29,7 @@ RSpec.configure do |config|
   end
 
   def shared_idevice
-    $shared_idevice ||= Idev::Idevice.attach
+    $shared_idevice ||= Idevice::Idevice.attach
   end
 
   def shell_pipe(data, cmd)
@@ -45,7 +45,7 @@ RSpec.configure do |config|
 end
 
 if ENV["DEBUG"]
-  Idev.debug_level=9
+  Idevice.debug_level=9
 end
 
 if ENV["GC_STRESS"]

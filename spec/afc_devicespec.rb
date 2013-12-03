@@ -1,17 +1,17 @@
 require_relative 'spec_helper'
 require 'time'
 
-describe Idev::AFCClient do
+describe Idevice::AFCClient do
   before :all do
     @fromfile = sample_file("plist.bin")
   end
 
   before :each do
-    @afc = Idev::AFCClient.attach(idevice:shared_idevice)
+    @afc = Idevice::AFCClient.attach(idevice:shared_idevice)
   end
 
   it "should attach" do
-    @afc.should be_a Idev::AFCClient
+    @afc.should be_a Idevice::AFCClient
   end
 
   it "should return device info" do
@@ -43,7 +43,7 @@ describe Idev::AFCClient do
   end
 
   it "should raise an error listing an invalid directory" do
-    lambda{ @afc.read_directory('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
+    lambda{ @afc.read_directory('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idevice::AFCError)
   end
 
   it "should get file information" do
@@ -54,7 +54,7 @@ describe Idev::AFCClient do
   end
 
   it "should raise an error getting info for an invalid path" do
-    lambda{ @afc.file_info('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
+    lambda{ @afc.file_info('/TOTALLYNOTREALLYTHERE') }.should raise_error(Idevice::AFCError)
   end
 
   it "should remove a file path" do
@@ -78,7 +78,7 @@ describe Idev::AFCClient do
       @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
       originfo = @afc.file_info(remotepath)
       @afc.rename_path(remotepath, renamepath).should be_true
-      lambda{ @afc.file_info(remotepath) }.should raise_error Idev::AFCError
+      lambda{ @afc.file_info(remotepath) }.should raise_error Idevice::AFCError
       info = @afc.file_info(renamepath)
       info.should == originfo
     ensure
@@ -95,7 +95,7 @@ describe Idev::AFCClient do
       @afc.make_directory(remotepath).should be_true
       originfo = @afc.file_info(remotepath)
       @afc.rename_path(remotepath, renamepath).should be_true
-      lambda{ @afc.file_info(remotepath) }.should raise_error Idev::AFCError
+      lambda{ @afc.file_info(remotepath) }.should raise_error Idevice::AFCError
       info = @afc.file_info(renamepath)
       info.should == originfo
     ensure
@@ -169,7 +169,7 @@ describe Idev::AFCClient do
   end
 
   it "should raise an error removing a non-existent path" do
-    lambda{ @afc.remove_path('TOTALLYNOTREALLYTHERE') }.should raise_error(Idev::AFCError)
+    lambda{ @afc.remove_path('TOTALLYNOTREALLYTHERE') }.should raise_error(Idevice::AFCError)
   end
 
   it "should put a file and cat it" do

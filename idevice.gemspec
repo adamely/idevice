@@ -1,16 +1,16 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'idev/version'
+require 'idevice/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "idev"
-  spec.version       = Idev::VERSION
+  spec.name          = "idevice"
+  spec.version       = Idevice::VERSION
   spec.authors       = ["Eric Monti"]
-  spec.email         = ["monti@bluebox.com"]
+  spec.email         = ["esmonti@gmail.com"]
   spec.description   = %q{Ruby FFI bindings for libimobiledevice}
   spec.summary       = %q{Ruby FFI bindings for libimobiledevice}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/emonti/idevice"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
