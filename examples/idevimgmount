@@ -10,7 +10,7 @@ dmgpath = ARGV.shift
 sigpath = ARGV.shift
 
 if dmgpath.nil? or ARGV.shift
-  $stderr.puts "usage: #{File.basename $0} /path/to/DeveloperDiskImage.dmg [/path/to/DeveloperDiskImage.dmg.signature]"
+  $stderr.puts "usage: #{progname} /path/to/DeveloperDiskImage.dmg [/path/to/DeveloperDiskImage.dmg.signature]"
   exit(1)
 end
 
