@@ -21,4 +21,12 @@ afc.put_path(ipa.to_s, remote_path.to_s)
 
 instpxy = Idevice::InstProxyClient.attach(idevice:idev)
 $stderr.puts "[.] Requesting installation of #{remote_path}"
-instpxy.install(remote_path.to_s)
+finished = false
+instpxy.install(remote_path.to_s) do |name, status|
+  p [name, status]
+  finished = (status["Error"] or status["Status"] == "Complete")
+end
+
+while not finished
+  #nop
+end

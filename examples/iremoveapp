@@ -11,4 +11,12 @@ end
 
 instpxy = Idevice::InstProxyClient.attach
 $stderr.puts "[.] Requesting uninstallation of #{appid}"
-instpxy.uninstall(appid)
+finished = false
+instpxy.uninstall(appid) do |name, status|
+  p [name, status]
+  finished = (status["Error"] or status["Status"] == "Complete")
+end
+
+until finished
+  #nop
+end
