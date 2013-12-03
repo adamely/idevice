@@ -19,6 +19,7 @@ require 'idev/mobilesync'
 require 'idev/notification_proxy'
 require 'idev/restore'
 require 'idev/sbservices'
+require 'idev/screenshotr'
 
 module Idev
   def self.debug_level= num
