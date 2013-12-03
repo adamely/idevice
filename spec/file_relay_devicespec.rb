@@ -18,7 +18,7 @@ describe Idev::FileRelayClient do
     crashdata.should be_a String
 
     # the returned data is actually a gzip-compressed cpio
-    shell_pipe(crashdata, "file -").should =~ /gzip compressed data, from Unix\n$/
+    shell_pipe(crashdata[0..256], "file -").should =~ /gzip compressed data, from Unix\n$/
     shell_pipe(crashdata, "cpio -t").should =~ /^\.\/var\/mobile\/Library/
   end
 end

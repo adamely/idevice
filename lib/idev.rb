@@ -18,6 +18,7 @@ require 'idev/mobilebackup2'
 require 'idev/mobilesync'
 require 'idev/notification_proxy'
 require 'idev/restore'
+require 'idev/sbservices'
 
 module Idev
   def self.debug_level= num
