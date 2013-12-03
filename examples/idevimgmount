@@ -21,11 +21,6 @@ idev = Idevice::Idevice.attach()
 
 imgmnt = Idevice::ImageMounterClient.attach(idevice:idev, label:progname)
 begin
-  if imgmnt.is_mounted?("Developer")
-    $stderr.puts "[-] Error: The Developer image is already mounted on this device"
-    exit(1)
-  end
-
   # upload the dmg
   afc = Idevice::AFCClient.attach(idevice:idev, label:progname)
   dstdmg = "PublicStaging/staging.dimage"

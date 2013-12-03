@@ -4,15 +4,16 @@ require 'bundler/setup'
 require 'idevice'
 
 outname = ARGV.shift || "iscreenshot.tiff"
-idev = Idevice::Idevice.attach
 
-imgmnt = Idevice::ImageMounterClient.attach(idevice:idev)
-if imgmnt.is_mounted?("Developer")
-  sshot = Idevice::ScreenShotrClient.attach(idevice:idev).take_screenshot
-  ret = File.open(outname, "w") {|f| f.write sshot }
-  puts "[+] wrote #{ret} bytes to #{outname}"
-  exit(0)
-else
-  $stderr.puts "[-] Error: cannot a take screenshot without the DeveloperTools dmg mounted on device"
+begin
+  sshotr = Idevice::ScreenShotrClient.attach()
+rescue Idevice::LockdownError
+  $stderr.puts "[-] Error: unable to connect to screenshotr",
+               "    Hint: the DeveloperTools dmg must be mounted on device"
   exit(1)
 end
+
+image = sshotr.take_screenshot
+ret = File.open(outname, "w") {|f| f.write image }
+puts "[+] wrote #{ret} bytes to #{outname}"
+exit(0)
