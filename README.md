@@ -2,6 +2,10 @@
 
 Ruby FFI bindings for libimobiledevice
 
+The ruby Idevice library was written primarily as a research tool for
+prototyping iOS tools that use USB as well as a tool to aid in 
+reverse-engineering new areas of the iOS USB protocols.
+
 ## Versions
 
 The ruby idevice package version number corresponds to the libimobiledevice

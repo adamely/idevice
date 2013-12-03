@@ -9,7 +9,13 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Eric Monti"]
   spec.email         = ["esmonti@gmail.com"]
   spec.description   = %q{Ruby FFI bindings for libimobiledevice}
-  spec.summary       = %q{Ruby FFI bindings for libimobiledevice}
+  spec.summary       = %q{
+Ruby FFI bindings for libimobiledevice.
+
+The ruby Idevice library was written primarily as a research tool for
+prototyping iOS tools that use USB as well as a tool to aid in 
+reverse-engineering new areas of the iOS USB protocols.
+}
   spec.homepage      = "https://github.com/emonti/idevice"
   spec.license       = "MIT"
 
