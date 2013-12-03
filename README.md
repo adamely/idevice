@@ -34,11 +34,21 @@ Or install it yourself as:
 
 ## Usage
 
-See examples/
+See 
+
+- https://github.com/blueboxsecurity/idevice/tree/master/examples
+- https://github.com/blueboxsecurity/idevice/tree/master/spec
 
 ## Author
 
 Eric Monti - monti.bluebox.com
+
+
+## Issues / Contributing
+
+Please submit pull requests using github.
+Report issues at https://github.com/blueboxsecurity/idevice/issues
+
 
 ## License
 
