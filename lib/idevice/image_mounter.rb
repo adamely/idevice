@@ -45,6 +45,7 @@ module Idevice
     end
 
     def mount_image(path, signature, image_type="Developer")
+      signature = signature.dup.force_encoding('binary')
       FFI::MemoryPointer.from_bytes(signature) do |p_signature|
         FFI::MemoryPointer.new(:pointer) do |p_result|
           err = C.mobile_image_mounter_mount_image(self, path, p_signature, p_signature.size, image_type, p_result)
