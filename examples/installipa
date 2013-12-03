@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'idevice'
+
+ipa_path = ARGV.shift
+if ipa_path.nil? or ARGV.shift
+  $stderr.puts "Usage: #{File.basename} /path/to/an.ipa"
+  exit(1)
+end
+
+ipa = Pathname(ipa_path)
+
+idev = Idevice::Idevice.attach
+
+remote_path = Pathname("PublicStaging").join(ipa.basename)
+
+afc = Idevice::AFCClient.attach(idevice:idev)
+$stderr.puts "[.] Uploading #{ipa} to #{remote_path}"
+afc.put_path(ipa.to_s, remote_path.to_s)
+
+instpxy = Idevice::InstProxyClient.attach(idevice:idev)
+$stderr.puts "[.] Requesting installation of #{remote_path}"
+instpxy.install(remote_path.to_s)
