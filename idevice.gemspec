@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "idevice"
   spec.version       = Idevice::VERSION
   spec.authors       = ["Eric Monti"]
-  spec.email         = ["esmonti@gmail.com"]
+  spec.email         = ["monti@bluebox.com"]
   spec.description   = %q{Ruby FFI bindings for libimobiledevice}
   spec.summary       = %q{Ruby FFI bindings for libimobiledevice.
 

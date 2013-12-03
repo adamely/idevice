@@ -38,11 +38,11 @@ See examples/
 
 ## Author
 
-Eric Monti - esmonti(at)gmail(dot)com
+Eric Monti - monti.bluebox.com
 
 ## License
 
-Copyright (c) 2013 Eric Monti
+Copyright (c) 2013 Eric Monti - Bluebox Security
 
 See LICENSE.txt
 
