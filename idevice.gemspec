@@ -15,7 +15,7 @@ The ruby Idevice library was written primarily as a research tool for
 prototyping iOS tools that use USB as well as a tool to aid in 
 reverse-engineering new areas of the iOS USB protocols.
 }
-  spec.homepage      = "https://github.com/emonti/idevice"
+  spec.homepage      = "https://github.com/blueboxsecurity/idevice"
   spec.license       = "Apache License, Version 2.0"
 
   spec.files         = `git ls-files`.split($/)
