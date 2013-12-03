@@ -4,10 +4,10 @@ Ruby FFI bindings for libimobiledevice
 
 ## Versions
 
-The rubygem version number corresponds to the libimobiledevice version
-it is built for. Where necessary, an 4th version digit will be appended
-for rubygem-specific fixes and features within a given libimobiledevice
-version cycle.
+The ruby idevice package version number corresponds to the libimobiledevice
+version it is built for. Where necessary, an 4th version digit will be
+appended for rubygem-specific fixes and features within a given
+libimobiledevice version cycle.
 
 ## Requirements
 
@@ -30,13 +30,15 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+See examples/
 
 ## Author
 
 Eric Monti - esmonti(at)gmail(dot)com
 
 ## License
+
+Copyright (c) 2013 Eric Monti
 
 See LICENSE.txt
 
