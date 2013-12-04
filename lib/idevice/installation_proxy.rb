@@ -128,8 +128,9 @@ module Idevice
     def _cb(&block)
       @_cb_blk = block
       @_cb_procblk = Proc.new do |op, status, junk|
-        st = status.null? ? nil : Plist_t_Unmanaged.new(ptr).to_ruby
-        block.call(op, st)
+        unless status.null?
+          @_cb_blk.call(op, status.to_ruby)
+        end
       end
       return @_cb_procblk
     end
@@ -151,7 +152,7 @@ module Idevice
 
     #/** Reports the status of the given operation */
     #typedef void (*instproxy_status_cb_t) (const char *operation, plist_t status, void *user_data);
-    callback :instproxy_status_cb_t, [:string, :pointer, :pointer], :void
+    callback :instproxy_status_cb_t, [:string, Plist_t_Unmanaged, :pointer], :void
 
     #/* Interface */
     #instproxy_error_t instproxy_client_new(idevice_t device, lockdownd_service_descriptor_t service, instproxy_client_t *client);
