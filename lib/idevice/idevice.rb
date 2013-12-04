@@ -28,7 +28,11 @@ module Idevice
 
   class Idevice < C::ManagedOpaquePointer
     def self.release(ptr)
-      C.idevice_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C.idevice_free(ptr)
+        end
+      end
     end
 
     # Use this instead of 'new' to attach to an idevice using libimobiledevice

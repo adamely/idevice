@@ -21,6 +21,7 @@
 require "rubygems"
 require 'plist'
 require "ffi"
+require "thread"
 
 module FFI
   class MemoryPointer < Pointer
@@ -101,6 +102,8 @@ module Idevice
 
   module C
     extend FFI::Library
+
+    Freelock = Mutex.new
 
     class ManagedOpaquePointer < FFI::AutoPointer
       def initialize(pointer)

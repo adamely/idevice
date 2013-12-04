@@ -32,7 +32,11 @@ module Idevice
     include LibHelpers
 
     def self.release(ptr)
-      C.mobilebackup2_client_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C.mobilebackup2_client_free(ptr)
+        end
+      end
     end
 
     def self.attach(opts={})

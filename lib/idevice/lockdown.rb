@@ -28,8 +28,13 @@ module Idevice
 
   # Used to manage device preferences, start services, pairing and activation on the device.
   class LockdownClient < C::ManagedOpaquePointer
+
     def self.release(ptr)
-      C.lockdownd_client_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C.lockdownd_client_free(ptr)
+        end
+      end
     end
 
     def self.attach(opts={})

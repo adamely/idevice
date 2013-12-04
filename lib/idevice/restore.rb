@@ -30,7 +30,11 @@ module Idevice
   # Used to initiate the device restore process or reboot a device.
   class RestoreClient < C::ManagedOpaquePointer
     def self.release(ptr)
-      C.restored_client_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C.restored_client_free(ptr)
+        end
+      end
     end
 
     def self.attach(opts={})

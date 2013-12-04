@@ -31,7 +31,11 @@ module Idevice
     include LibHelpers
 
     def self.release(ptr)
-      C.heartbeat_client_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C.heartbeat_client_free(ptr)
+        end
+      end
     end
 
     def self.attach(opts={})

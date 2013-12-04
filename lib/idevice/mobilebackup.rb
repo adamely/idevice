@@ -32,7 +32,11 @@ module Idevice
     include LibHelpers
 
     def self.release(ptr)
-      C.mobilebackup_client_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C.mobilebackup_client_free(ptr)
+        end
+      end
     end
 
     FLAG_RESTORE_NOTIFY_SPRINGBOARD     = (1 << 0)

@@ -65,7 +65,11 @@ end
 module Idevice
   class Plist_t < C::ManagedOpaquePointer
     def self.release(ptr)
-      C::plist_free(ptr) unless ptr.null?
+      C::Freelock.synchronize do
+        unless ptr.null?
+          C::plist_free(ptr)
+        end
+      end
     end
 
     def self.new_array
