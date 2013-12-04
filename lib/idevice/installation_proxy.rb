@@ -120,11 +120,10 @@ module Idevice
       return true
     end
 
-    private
-    def _cb(&blk)
-      if blk
-        lambda {|op, status, junk| blk.call(op, status.to_ruby) }
-      end
+  private
+    def _cb
+      @_cb_procblk = Proc.new {|op, status, junk| yield(op, status.to_ruby) }
+      return @_cb_procblk
     end
   end
 

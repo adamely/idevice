@@ -128,6 +128,7 @@ module Idevice
 
     DEFAULT_RECV_TIMEOUT = 0
     DEFAULT_RECV_CHUNKSZ = 8192
+
     # blocking read - optionally yields to a block with each chunk read
     def receive_all(timeout=nil, chunksz=nil)
       timeout ||= DEFAULT_RECV_TIMEOUT

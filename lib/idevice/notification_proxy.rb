@@ -122,9 +122,8 @@ module Idevice
 
   private
     def _cb
-      lambda do |notification, junk|
-        yield(notification)
-      end
+      @_cb_procblk = Proc.new {|notification, junk| yield(notification) }
+      return @_cb_procblk
     end
   end
 
