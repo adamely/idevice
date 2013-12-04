@@ -21,11 +21,11 @@
 require_relative 'spec_helper'
 
 describe Idevice::MobileBackup2Client do
-  before :all do
+  before :each do
     @mb2 = Idevice::MobileBackup2Client.attach(idevice:shared_idevice)
   end
 
-  after :all do
+  after :each do
   end
 
   it "should attach" do
