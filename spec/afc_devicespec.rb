@@ -240,7 +240,7 @@ describe Idevice::AFCClient do
     remotepath = 'TESTFILEUPLOADFORGET'
     begin
       @afc.put_path(@fromfile.to_s, remotepath).should == @fromfile.size
-      @afc.getpath(remotepath, tmppath).should == @fromfile.size
+      @afc.get_path(remotepath, tmppath).should == @fromfile.size
       File.read(tmppath).should == @fromfile.read()
     ensure
       @afc.remove_path(remotepath) rescue nil

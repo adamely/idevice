@@ -206,7 +206,7 @@ module Idevice
       return wlen
     end
 
-    def getpath(frompath, topath, chunksz=nil)
+    def get_path(frompath, topath, chunksz=nil)
       wlen = 0
       AFCFile.open(self, frompath, 'r') do |from|
         File.open(topath, 'w') do |to|
