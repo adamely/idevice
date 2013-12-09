@@ -124,9 +124,9 @@ module Idevice
       C.plist_new_uint(val)
     end
 
-    def self.new_uid(val)
-      C.plist_new_uint(val)
-    end
+    #def self.new_uid(val)
+      #C.plist_new_uint(val)
+    #end
 
     def self.new_data(data)
       FFI::MemoryPointer.from_bytes(data) do |p_data|
@@ -219,7 +219,7 @@ module Idevice
     attach_function :plist_new_date, [:int32, :int32], Plist_t
 
     #PLIST_API plist_t plist_new_uid(uint64_t val);
-    attach_function :plist_new_uid, [:uint64], Plist_t
+    #attach_function :plist_new_uid, [:uint64], Plist_t
 
     #PLIST_API plist_t plist_copy(plist_t node);
     attach_function :plist_copy, [Plist_t], Plist_t
@@ -313,7 +313,7 @@ module Idevice
     attach_function :plist_get_date_val, [Plist_t, :pointer, :pointer], :void
 
     #PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val);
-    attach_function :plist_get_uid_val, [Plist_t, :pointer], :void
+    #attach_function :plist_get_uid_val, [Plist_t, :pointer], :void
 
     #PLIST_API void plist_set_type(plist_t node, plist_type type);
     attach_function :plist_set_type, [Plist_t, :plist_type], :void
@@ -340,7 +340,7 @@ module Idevice
     attach_function :plist_set_date_val, [Plist_t, :int32, :int32], :void
 
     #PLIST_API void plist_set_uid_val(plist_t node, uint64_t val);
-    attach_function :plist_set_uid_val, [Plist_t, :int32, :int32], :void
+    #attach_function :plist_set_uid_val, [Plist_t, :int32, :int32], :void
 
     # void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
     attach_function :plist_from_bin, [:pointer, :uint32, :pointer], :void
