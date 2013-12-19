@@ -33,6 +33,32 @@ describe Plist do
     hash.should == {"Label" => "idevspecs", "Request" => "QueryType"}
   end
 
+  it "should parse a xml plist file to a data object" do
+    data = Plist.parse_xml(sample_file("plist_data.xml").read)
+    data.should be_a StringIO
+    data.string.should == "\u263a hey look it is a raw data blob \u263a"
+  end
+
+  it "should parse a binary plist file to a data object" do
+    data = Plist.parse_binary(sample_file("plist_data.bin").read)
+    data.should be_a StringIO
+    data.string.should == "\u263a hey look it is a raw data blob \u263a"
+  end
+
+  it "should parse a ASCII encoded binary plist string to a data object" do
+    rawdata = "bplist00O\x10&\xE2\x98\xBA hey look it is a raw data blob \xE2\x98\xBA\b\x00\x00\x00\x00\x00\x00\x01\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x001"
+    data = Plist.parse_binary(rawdata)
+    data.should be_a StringIO
+    data.string.should == "\u263a hey look it is a raw data blob \u263a"
+  end
+
+  it "should parse a utf-8 encoded binary plist string to a data object" do
+    rawdata = "bplist00O\u0010&\u263a hey look it is a raw data blob \u263a\b\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u00001"
+    data = Plist.parse_binary(rawdata)
+    data.should be_a StringIO
+    data.string.should == "\u263a hey look it is a raw data blob \u263a"
+  end
+
   it "should parse a xml plist to plist pointer" do
     ptr = Plist.xml_to_pointer(sample_file("plist.xml").read)
     ptr.should be_a FFI::Pointer
