@@ -27,7 +27,7 @@ module FFI
   class MemoryPointer < Pointer
     def self.from_bytes(data)
       if block_given?
-        new(data.size) do |p|
+        new(data.bytesize) do |p|
           p.write_bytes(data)
           yield(p)
         end
