@@ -208,7 +208,7 @@ describe Idevice::AFCClient do
 
     begin
       gotblock=false
-      @afc.put_path(@fromfile.to_s, remotepath, 2) do |chunksz|
+      @afc.put_path(@fromfile.to_s, remotepath, chunksize: 2) do |chunksz|
         gotblock=true
         (0..2).should include(chunksz)
       end.should == @fromfile.size

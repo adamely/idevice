@@ -189,8 +189,51 @@ module Idevice
       return info[:st_birthtime]
     end
 
-    def put_path(frompath, topath, chunksz=nil)
-      chunksz ||= AFC_DEFAULT_CHUNKSIZE
+    # puts files recursively from the local machine to the remove idevice.
+    # topath should be a directory that exists on the remote device or '.'
+    # for the top-level directory.
+    # opts are passed as-is back to put_path (allowing :chunksize or other options to be set).
+    # opts[:recurse] will be ignored.
+    def put_recursively(frompath, topath, opts={})
+      opts = opts.dup
+      opts.delete(:recurse)
+
+      if File.directory?(frompath)
+        # remove trailing slash(es)
+        while topath[-1] == '/'
+          topath = topath[0..-2]
+        end
+
+        self.mkdir("#{topath}/#{frompath}") rescue nil
+
+        Dir[File.join(frompath, "**", "*")].each do |rpath|
+          rtopath = "#{topath}/#{rpath}"
+          p [rpath, rtopath]
+          if File.directory?(rpath)
+            self.mkdir(rtopath)
+          else
+            self.put_path(rpath, rtopath, opts)
+          end
+        end
+      else
+        return self.put_path(frompath, topath, opts)
+      end
+    end
+
+    # supported options:
+    #   chunksize:   (Integer) chunksize for file transfer
+    #   recurse:     (Boolean) if true, will recursively transfer using put_recursively
+    def put_path(frompath, topath, opts={})
+      opts = opts.dup
+      chunksz = opts[:chunksize] || AFC_DEFAULT_CHUNKSIZE
+      recurse = opts.delete(:recurse)
+
+      return put_recursively(frompath, topath, opts) if recurse
+
+      if File.directory?(frompath)
+        raise ArgumentError, "#{frompath.inspect} is a directory and can only be put on the device using the 'recurse: true' option)"
+      end
+
       wlen = 0
 
       File.open(frompath, 'r') do |from|
