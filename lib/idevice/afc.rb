@@ -22,6 +22,7 @@ require 'idevice/c'
 require 'idevice/idevice'
 require 'idevice/lockdown'
 require 'idevice/house_arrest'
+require 'pathname'
 
 module Idevice
   class AFCError < IdeviceLibError
@@ -204,11 +205,11 @@ module Idevice
           topath = topath[0..-2]
         end
 
-        self.mkdir("#{topath}/#{frompath}") rescue nil
+        base_frompath = Pathname(File.basename(frompath)).expand_path
+        self.mkdir("#{topath}/#{base_frompath.basename}") rescue nil
 
-        Dir[File.join(frompath, "**", "*")].each do |rpath|
-          rtopath = "#{topath}/#{rpath}"
-          p [rpath, rtopath]
+        Dir[File.join(base_frompath.to_s, "**", "*")].each do |rpath|
+          rtopath = "#{topath}/#{Pathname(rpath).relative_path_from(base_frompath.dirname)}"
           if File.directory?(rpath)
             self.mkdir(rtopath)
           else
