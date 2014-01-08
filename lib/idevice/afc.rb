@@ -196,20 +196,21 @@ module Idevice
     # opts are passed as-is back to put_path (allowing :chunksize or other options to be set).
     # opts[:recurse] will be ignored.
     def put_recursively(frompath, topath, opts={})
+      frompath = Pathname(frompath)
       opts = opts.dup
       opts.delete(:recurse)
 
-      if File.directory?(frompath)
+      if frompath.directory?
         # remove trailing slash(es)
         while topath[-1] == '/'
           topath = topath[0..-2]
         end
 
-        base_frompath = Pathname(File.basename(frompath)).expand_path
+        base_frompath = Pathname(File.basename(frompath.expand_path))
         self.mkdir("#{topath}/#{base_frompath.basename}") rescue nil
 
-        Dir[File.join(base_frompath.to_s, "**", "*")].each do |rpath|
-          rtopath = "#{topath}/#{Pathname(rpath).relative_path_from(base_frompath.dirname)}"
+        Dir[frompath.join("**", "*")].each do |rpath|
+          rtopath = "#{topath}/#{Pathname(rpath).relative_path_from(frompath.dirname)}"
           if File.directory?(rpath)
             self.mkdir(rtopath)
           else
