@@ -188,6 +188,17 @@ module Idevice
       :SSL_ERROR,            -6,
     ), :idevice_error_t
 
+    DEVICE_EVENTS = {
+      1 => :DEVICE_ADD,
+      2 => :DEVICE_REMOVE,
+    }
+
+    # async discovery
+    callback :idevice_event_cb_t, [:pointer, :pointer], :void
+
+    attach_function :idevice_event_subscribe, [:idevice_event_cb_t, :pointer], :idevice_error_t
+    attach_function :idevice_event_unsubscribe, [], :idevice_error_t
+
     # discovery (synchronous)
     attach_function :idevice_set_debug_level, [:int], :void
     attach_function :idevice_get_device_list, [:pointer, :pointer], :idevice_error_t

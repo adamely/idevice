@@ -65,5 +65,65 @@ module Idevice
       end
     end
   end
+
+  # listens for event connection and disconnection events
+  def self.subscribe
+    finished = false
+
+    cb = Proc.new do |eventp, junk|
+      unless eventp.nil? or eventp.null?
+        evt = C::DEVICE_EVENTS[eventp.read_int] || :UNKNOWN
+        finished = yield(evt)
+      end
+    end
+
+    begin
+      C.idevice_event_subscribe(cb, nil)
+      until finished
+        #nop
+      end
+    ensure
+      C.idevice_event_unsubscribe()
+    end
+    nil
+  end
+
+  def self.wait_for_device_add(opts={})
+    udid = opts[:udid]
+    if udid
+      return if device_list.include?(udid)
+    end
+
+    subscribe do |evt|
+      if evt == :DEVICE_ADD
+        if udid 
+          self.device_list.include?(udid)
+        else
+          true
+        end
+      else
+        false
+      end
+    end
+  end
+
+  def self.wait_for_device_remove(opts={})
+    udid = opts[:udid]
+    if udid
+      return unless device_list.include?(udid)
+    end
+
+    subscribe do |evt|
+      if evt == :DEVICE_REMOVE
+        if udid
+          (not self.device_list.include?(udid))
+        else
+          true
+        end
+      else
+        false
+      end
+    end
+  end
 end
 
