@@ -36,6 +36,7 @@ remote_path = Pathname("PublicStaging").join(ipa.basename)
 
 afc = Idevice::AFCClient.attach(idevice:idev)
 $stderr.puts "[.] Uploading #{ipa} to #{remote_path}"
+afc.mkdir(remote_path.dirname.to_s) rescue nil
 afc.put_path(ipa.to_s, remote_path.to_s)
 
 instpxy = Idevice::InstProxyClient.attach(idevice:idev)
