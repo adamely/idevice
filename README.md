@@ -52,6 +52,7 @@ Report issues at https://github.com/blueboxsecurity/idevice/issues
 
 ## License
 
+
     Copyright (c) 2013 Eric Monti - Bluebox Security
 
     Licensed to the Apache Software Foundation (ASF) under one
@@ -72,3 +73,16 @@ Report issues at https://github.com/blueboxsecurity/idevice/issues
     under the License.
 
 
+Note: The above license applies strictly to the ruby bindings, and does
+not apply to libimobiledevice nor libplist or any other of their dependent
+libraries as defined by their respective owners. See below.
+
+### libimobiledevice and libplist Copyright Notices
+
+Notice: libplist and libimobiledevice are both licensed under LGPL v2.1
+
+* libimobiledevice: Copyright (c) 2008 Zach C. All Rights Reserved.
+
+* libplist: Copyright (c) 2009 Jonathan Beck All Rights Reserved.
+
+See LICENSE.lgpl.txt for more information.
