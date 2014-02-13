@@ -73,11 +73,11 @@ module Idevice
     end
 
     def self.new_array
-      C.plist_new_array()
+      new(C.plist_new_array())
     end
 
     def self.new_dict
-      C.plist_new_dict()
+      new(C.plist_new_dict())
     end
 
     def self.from_xml(xml)
@@ -109,29 +109,29 @@ module Idevice
     end
 
     def self.new_bool(val)
-      C.plist_new_bool(val)
+      new(C.plist_new_bool(val))
     end
 
     def self.new_string(str)
-      C.plist_new_string(str)
+      new(C.plist_new_string(str))
     end
 
     def self.new_real(val)
-      C.plist_new_real(val)
+      new(C.plist_new_real(val))
     end
 
     def self.new_uint(val)
-      C.plist_new_uint(val)
+      new(C.plist_new_uint(val))
     end
 
     #def self.new_uid(val)
-      #C.plist_new_uint(val)
+      #new(C.plist_new_uint(val))
     #end
 
     def self.new_data(data)
       FFI::MemoryPointer.from_bytes(data) do |p_data|
         FFI::MemoryPointer.new(:pointer) do |p_out|
-          return C.plist_new_data(p_data, p_data.size)
+          return new(C.plist_new_data(p_data, p_data.size))
         end
       end
     end
@@ -195,31 +195,31 @@ module Idevice
     ffi_lib 'plist'
 
     #PLIST_API plist_t plist_new_dict(void);
-    attach_function :plist_new_dict, [], Plist_t
+    attach_function :plist_new_dict, [], :pointer
 
     #PLIST_API plist_t plist_new_array(void);
-    attach_function :plist_new_array, [], Plist_t
+    attach_function :plist_new_array, [], :pointer
 
     #PLIST_API plist_t plist_new_string(const char *val);
-    attach_function :plist_new_string, [:string], Plist_t
+    attach_function :plist_new_string, [:string], :pointer
 
     #PLIST_API plist_t plist_new_bool(uint8_t val);
-    attach_function :plist_new_bool, [:bool], Plist_t
+    attach_function :plist_new_bool, [:bool], :pointer
 
     #PLIST_API plist_t plist_new_uint(uint64_t val);
-    attach_function :plist_new_uint, [:uint64], Plist_t
+    attach_function :plist_new_uint, [:uint64], :pointer
 
     #PLIST_API plist_t plist_new_real(double val);
-    attach_function :plist_new_real, [:double], Plist_t
+    attach_function :plist_new_real, [:double], :pointer
 
     #PLIST_API plist_t plist_new_data(const char *val, uint64_t length);
-    attach_function :plist_new_data, [:pointer, :uint64], Plist_t
+    attach_function :plist_new_data, [:pointer, :uint64], :pointer
 
     #PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec);
-    attach_function :plist_new_date, [:int32, :int32], Plist_t
+    attach_function :plist_new_date, [:int32, :int32], :pointer
 
     #PLIST_API plist_t plist_new_uid(uint64_t val);
-    #attach_function :plist_new_uid, [:uint64], Plist_t
+    #attach_function :plist_new_uid, [:uint64], :pointer
 
     #PLIST_API plist_t plist_copy(plist_t node);
     attach_function :plist_copy, [Plist_t], Plist_t

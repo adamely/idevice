@@ -135,7 +135,7 @@ module Idevice
     end
 
     def set_value(domain, key, value)
-      err = C.lockdownd_set_value(self, domain, key, Plist_t.from_ruby(value))
+      err = C.lockdownd_set_value(self, domain, key, Plist_t_Unmanaged.from_ruby(value))
       raise LockdownError, "Lockdownd error: #{err}" if err != :SUCCESS
       return true
     end

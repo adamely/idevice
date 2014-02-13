@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+#
+# Copyright (c) 2013 Eric Monti - Bluebox Security
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+require 'bundler/setup'
+require 'idevice'
+
+require 'optparse'
+
+newname = nil
+udid = nil
+
+opts = OptionParser.new do |o|
+  o.banner = "Usage: #{File.basename $0} [opts]"
+
+  o.on_tail("-h", "--help", "Display usage info and quit") do
+    puts o
+    exit 0
+  end
+
+  o.on("-u", "--udid UDID", "Capture from specified device UDID", "(Default: first found)") do |_udid|
+    udid = _udid
+  end
+end
+
+begin
+  opts.parse!(ARGV)
+  newname = ARGV.shift
+
+  raise "No device name was specified" unless newname
+  raise "Unexpected arguments" unless ARGV.empty?
+rescue => e
+  puts "Error: #{e}", opts.to_s
+  exit!
+end
+
+idev = Idevice::Idevice.attach(udid:udid)
+ldcli = Idevice::LockdownClient.attach(idev:idev)
+ldcli.set_value(nil, "DeviceName", newname)
+
