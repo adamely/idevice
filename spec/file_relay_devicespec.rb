@@ -22,7 +22,7 @@ require 'spec_helper'
 
 describe Idevice::FileRelayClient do
   before :each do
-    @frc = Idevice::FileRelayClient.attach(idevice:shared_idevice)
+    @frc = Idevice::FileRelayClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

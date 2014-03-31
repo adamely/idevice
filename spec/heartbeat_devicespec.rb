@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::HeartbeatClient do
   before :all do
-    @hb = Idevice::HeartbeatClient.attach(idevice:shared_idevice)
+    @hb = Idevice::HeartbeatClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

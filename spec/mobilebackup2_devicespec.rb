@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::MobileBackup2Client do
   before :each do
-    @mb2 = Idevice::MobileBackup2Client.attach(idevice:shared_idevice)
+    @mb2 = Idevice::MobileBackup2Client.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   after :each do

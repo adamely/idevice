@@ -27,7 +27,7 @@ describe Idevice::AFCClient do
   end
 
   before :each do
-    @afc = Idevice::AFCClient.attach(idevice:shared_idevice)
+    @afc = Idevice::AFCClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

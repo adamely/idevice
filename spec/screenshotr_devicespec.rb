@@ -23,7 +23,7 @@ require_relative 'spec_helper'
 describe Idevice::ScreenShotrClient do
   before :each do
     pending "needs developer disk mounted" unless ENV["DEVTESTS"]
-    @ss = Idevice::ScreenShotrClient.attach(idevice:shared_idevice)
+    @ss = Idevice::ScreenShotrClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::InstProxyClient do
   before :each do
-    @instproxy = Idevice::InstProxyClient.attach(idevice:shared_idevice)
+    @instproxy = Idevice::InstProxyClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

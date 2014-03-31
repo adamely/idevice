@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::WebInspectorClient do
   before :each do
-    @wic = Idevice::WebInspectorClient.attach(idevice:shared_idevice)
+    @wic = Idevice::WebInspectorClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

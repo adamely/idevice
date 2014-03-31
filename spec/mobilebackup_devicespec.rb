@@ -24,7 +24,7 @@ if ENV["TEST_MOBILEBACKUP1"]
 
   describe Idevice::MobileBackupClient do
     before :each do
-      @mb = Idevice::MobileBackupClient.attach(idevice:shared_idevice)
+      @mb = Idevice::MobileBackupClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
     end
 
     after :each do

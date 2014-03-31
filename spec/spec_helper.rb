@@ -52,6 +52,10 @@ RSpec.configure do |config|
     $shared_idevice ||= Idevice::Idevice.attach
   end
 
+  def shared_lockdown_client
+    $shared_ldcli ||= Idevice::LockdownClient.attach(idevice:shared_idevice())
+  end
+
   def shell_pipe(data, cmd)
     ret=nil
     Open3.popen3(cmd) do |w,r,e|

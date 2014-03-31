@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::MisAgentClient do
   before :each do
-    @mis = Idevice::MisAgentClient.attach(idevice:shared_idevice)
+    @mis = Idevice::MisAgentClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

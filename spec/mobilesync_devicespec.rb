@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::MobileSyncClient do
   before :each do
-    @sync = Idevice::MobileSyncClient.attach(idevice:shared_idevice)
+    @sync = Idevice::MobileSyncClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   after :each do

@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::ImageMounterClient do
   before :each do
-    @imgmounter = Idevice::ImageMounterClient.attach(idevice:shared_idevice)
+    @imgmounter = Idevice::ImageMounterClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   after :each do

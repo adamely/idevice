@@ -21,12 +21,8 @@
 require_relative 'spec_helper'
 
 describe Idevice::DiagnosticsRelayClient do
-  before :all do
-    @idevice = shared_idevice
-  end
-
   before :each do
-    @drc = Idevice::DiagnosticsRelayClient.attach(idevice:@idevice)
+    @drc = Idevice::DiagnosticsRelayClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   after :each do

@@ -35,11 +35,11 @@ describe Idevice::LockdownClient do
 
   context "an attached client" do
     before :each do
-      @lockdown = Idevice::LockdownClient.attach(idevice: shared_idevice)
+      @lockdown = Idevice::LockdownClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
     end
 
     after :each do
-      @lockdown.goodbye
+      @lockdown.goodbye if @lockdown
     end
 
     it "should attach" do

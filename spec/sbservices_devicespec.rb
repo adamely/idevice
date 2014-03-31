@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::SBSClient do
   before :each do
-    @sbs = Idevice::SBSClient.attach(idevice:shared_idevice)
+    @sbs = Idevice::SBSClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   it "should attach" do

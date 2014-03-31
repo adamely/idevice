@@ -22,7 +22,7 @@ require_relative 'spec_helper'
 
 describe Idevice::RestoreClient do
   before :each do
-    @rc = Idevice::RestoreClient.attach(idevice:shared_idevice)
+    @rc = Idevice::RestoreClient.attach(idevice:shared_idevice, lockdown_client:shared_lockdown_client)
   end
 
   before :each do
