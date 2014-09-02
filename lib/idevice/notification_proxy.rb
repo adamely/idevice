@@ -93,27 +93,25 @@ module Idevice
       return true
     end
 
-    def observe_notification
-      FFI::MemoryPointer.new(:pointer) do |p_notification|
-        err = C.np_observe_notification(self, p_notification)
-        raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+    def observe_notification(notification_type)
+      err = C.np_observe_notification(self, notification_type)
+      raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
 
-        notification = p_notification.read_pointer
-        unless notification.null?
-          ret = notification.read_string
-          C.free(notification)
-          return ret
-        end
-      end
     end
 
-    def observe_notifications
-      FFI::MemoryPointer.new(:pointer) do |p_notifications|
-        err = C.np_observe_notifications(self, p_notifications)
-        raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
+    def observe_notifications(notification_types)
+	  ntypes_ary = []
+	  notification_types.each do |ntype|
+		ntypes_ary << FFI::MemoryPointer.from_string(ntype)
+	  end
+	  ntypes_ary << nil
+	  ntypes = FFI::MemoryPointer.new(:pointer, ntypes_ary.length)
+	  ntypes_ary.each_with_index do |p, i|
+		ntypes[i].put_pointer(0, p)
+	  end
+	  err = C.np_observe_notifications(self, ntypes)
+      raise NotificationProxyError, "Notification Proxy Error: #{err}" if err != :SUCCESS
 
-        return _unbound_list_to_array(p_notifications)
-      end
     end
 
     def set_notify_callback(&block)
