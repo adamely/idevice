@@ -315,9 +315,6 @@ module Idevice
     #PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val);
     #attach_function :plist_get_uid_val, [Plist_t, :pointer], :void
 
-    #PLIST_API void plist_set_type(plist_t node, plist_type type);
-    attach_function :plist_set_type, [Plist_t, :plist_type], :void
-
     #PLIST_API void plist_set_key_val(plist_t node, const char *val);
     attach_function :plist_set_key_val, [Plist_t, :string], :void
 
